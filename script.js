@@ -14,6 +14,7 @@ const levelOptionButtons = Array.from(document.querySelectorAll("[data-level-opt
 
 const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const backRank = ["rook", "knight", "bishop", "queen", "king", "bishop", "knight", "rook"];
+const pieceTypes = ["pawn", "rook", "knight", "bishop", "queen", "king"];
 
 const pieceSymbols = {
   white: {
@@ -35,9 +36,12 @@ const pieceSymbols = {
 };
 
 const gameConfig = {
-  usePieceImages: false,
+  pieceAssetExtensions: ["webp", "png"],
   aiMoveDelayMs: 500,
 };
+
+const pieceAssetCatalog = createPieceAssetCatalog();
+const pieceAssetStatus = new Map();
 
 const setupState = {
   mode: null,
@@ -63,13 +67,39 @@ function createStartingPieces() {
     const file = files[index];
     const majorPiece = backRank[index];
 
-    pieces.push({ color: "black", type: majorPiece, square: `${file}8` });
-    pieces.push({ color: "black", type: "pawn", square: `${file}7` });
-    pieces.push({ color: "white", type: "pawn", square: `${file}2` });
-    pieces.push({ color: "white", type: majorPiece, square: `${file}1` });
+    pieces.push(createPieceData("black", majorPiece, `${file}8`));
+    pieces.push(createPieceData("black", "pawn", `${file}7`));
+    pieces.push(createPieceData("white", "pawn", `${file}2`));
+    pieces.push(createPieceData("white", majorPiece, `${file}1`));
   }
 
   return pieces;
+}
+
+function createPieceAssetCatalog() {
+  const catalog = {};
+
+  for (const color of ["white", "black"]) {
+    catalog[color] = {};
+
+    for (const type of pieceTypes) {
+      catalog[color][type] = gameConfig.pieceAssetExtensions.map(
+        (extension) => `assets/pieces/${color}-${type}.${extension}`,
+      );
+    }
+  }
+
+  return catalog;
+}
+
+function createPieceData(color, type, square) {
+  return {
+    color,
+    type,
+    square,
+    imageKey: `${color}-${type}`,
+    assetPath: null,
+  };
 }
 
 function resetBoardState() {
@@ -132,7 +162,63 @@ function updateSetupControls() {
 }
 
 function getPieceAssetPath(piece) {
-  return `assets/pieces/${piece.color}-${piece.type}.png`;
+  const assetOptions = pieceAssetCatalog[piece.color][piece.type];
+  return assetOptions[0] || null;
+}
+
+function getPieceAssetOptions(piece) {
+  return pieceAssetCatalog[piece.color][piece.type] || [];
+}
+
+function getPieceVisualState(piece) {
+  const assetOptions = getPieceAssetOptions(piece);
+
+  for (const assetPath of assetOptions) {
+    const status = pieceAssetStatus.get(assetPath);
+    if (status === "loaded") {
+      piece.assetPath = assetPath;
+      return {
+        imageKey: piece.imageKey,
+        assetPath,
+        useImage: true,
+      };
+    }
+  }
+
+  piece.assetPath = getPieceAssetPath(piece);
+  return {
+    imageKey: piece.imageKey,
+    assetPath: piece.assetPath,
+    useImage: false,
+  };
+}
+
+function requestPieceAssetCheck(assetPath) {
+  if (!assetPath || pieceAssetStatus.has(assetPath)) {
+    return;
+  }
+
+  pieceAssetStatus.set(assetPath, "loading");
+
+  const image = new Image();
+  image.addEventListener("load", () => {
+    pieceAssetStatus.set(assetPath, "loaded");
+    renderBoard();
+  });
+  image.addEventListener("error", () => {
+    pieceAssetStatus.set(assetPath, "missing");
+  });
+  image.src = assetPath;
+}
+
+function primePieceAssetChecks() {
+  for (const color of Object.keys(pieceAssetCatalog)) {
+    for (const type of Object.keys(pieceAssetCatalog[color])) {
+      for (const assetPath of pieceAssetCatalog[color][type]) {
+        requestPieceAssetCheck(assetPath);
+      }
+    }
+  }
 }
 
 function squareToPosition(square) {
@@ -521,26 +607,41 @@ function updateHud() {
 function createPieceElement(piece) {
   const button = document.createElement("button");
   button.type = "button";
-  button.className = `piece ${piece.color}`;
+  button.className = `piece ${piece.color} ${piece.type}`;
   button.dataset.square = piece.square;
   button.dataset.color = piece.color;
   button.dataset.type = piece.type;
-  button.dataset.asset = getPieceAssetPath(piece);
+  button.dataset.imageKey = piece.imageKey;
   button.setAttribute("aria-label", `${piece.color} ${piece.type} on ${piece.square}`);
 
   if (gameState.selectedPiece && gameState.selectedPiece.square === piece.square) {
     button.classList.add("selected");
   }
 
+  const visualState = getPieceVisualState(piece);
+  button.dataset.asset = visualState.assetPath || "";
+
   const label = document.createElement("span");
   label.className = "piece-label";
   label.textContent = pieceSymbols[piece.color][piece.type];
+  label.setAttribute("aria-hidden", visualState.useImage ? "true" : "false");
 
-  if (gameConfig.usePieceImages) {
+  const badge = document.createElement("span");
+  badge.className = "piece-badge";
+  badge.textContent = piece.type[0].toUpperCase();
+  badge.setAttribute("aria-hidden", "true");
+
+  if (visualState.useImage) {
     button.classList.add("image-piece");
-    button.style.backgroundImage = `url("${button.dataset.asset}")`;
+    button.style.backgroundImage = `url("${visualState.assetPath}")`;
+  } else {
+    button.classList.add("placeholder-piece", `${piece.color}-${piece.type}`);
+    for (const assetPath of getPieceAssetOptions(piece)) {
+      requestPieceAssetCheck(assetPath);
+    }
   }
 
+  button.appendChild(badge);
   button.appendChild(label);
   button.addEventListener("click", (event) => {
     event.stopPropagation();
@@ -636,3 +737,4 @@ function attachSetupEvents() {
 
 attachSetupEvents();
 updateSetupControls();
+primePieceAssetChecks();

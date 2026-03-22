@@ -7,6 +7,8 @@
   --piece-light: #fffdf8;
   --piece-dark: #4f78d1;
   --piece-outline: #2e2a26;
+  --piece-white-glow: rgba(255, 252, 245, 0.85);
+  --piece-black-glow: rgba(12, 33, 74, 0.38);
   --selected-highlight: #ffd84d;
   --move-highlight: #72d97e;
   --button-main: #ff8f47;
@@ -190,7 +192,7 @@ button {
 }
 
 .board-area {
-  width: min(92vw, 760px);
+  width: min(94vw, 820px);
 }
 
 .board-frame {
@@ -275,8 +277,8 @@ button {
 }
 
 .piece {
-  width: 68%;
-  height: 68%;
+  width: 76%;
+  height: 76%;
   border: 4px solid var(--piece-outline);
   border-radius: 50%;
   cursor: pointer;
@@ -285,22 +287,45 @@ button {
   justify-content: center;
   font-size: clamp(1rem, 2vw, 1.35rem);
   font-weight: 700;
-  transition: transform 140ms ease, box-shadow 140ms ease, outline 140ms ease;
+  transition: transform 140ms ease, box-shadow 140ms ease, outline 140ms ease, filter 140ms ease;
   background-position: center;
   background-repeat: no-repeat;
-  background-size: 80%;
+  background-size: cover;
   position: relative;
   z-index: 1;
+  overflow: hidden;
 }
 
 .piece.white {
   background-color: var(--piece-light);
   color: var(--text-main);
+  box-shadow:
+    inset 0 10px 18px rgba(255, 255, 255, 0.75),
+    0 10px 16px rgba(64, 40, 22, 0.16);
 }
 
 .piece.black {
   background-color: var(--piece-dark);
   color: #ffffff;
+  box-shadow:
+    inset 0 10px 18px rgba(122, 167, 255, 0.18),
+    0 10px 16px rgba(25, 43, 81, 0.22);
+}
+
+.piece::before {
+  content: "";
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.piece.white::before {
+  background: radial-gradient(circle at 30% 28%, var(--piece-white-glow) 0%, transparent 48%);
+}
+
+.piece.black::before {
+  background: radial-gradient(circle at 30% 28%, rgba(166, 198, 255, 0.42) 0%, transparent 48%);
 }
 
 .piece.selected {
@@ -308,12 +333,114 @@ button {
   box-shadow: 0 0 0 8px rgba(255, 216, 77, 0.28);
 }
 
-.piece.image-piece .piece-label {
+.piece.image-piece {
+  border-radius: 24%;
+  background-color: transparent;
+  background-size: contain;
+  background-position: center bottom;
+  box-shadow:
+    0 14px 18px rgba(64, 40, 22, 0.16),
+    0 0 0 3px rgba(255, 250, 240, 0.7);
+}
+
+.piece.image-piece::before {
+  inset: auto 14% 6%;
+  height: 18%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(64, 40, 22, 0.18) 0%, transparent 72%);
+}
+
+.piece.image-piece .piece-label,
+.piece.image-piece .piece-badge {
   opacity: 0;
 }
 
 .piece-label {
   pointer-events: none;
+  position: relative;
+  z-index: 1;
+}
+
+.piece-badge {
+  position: absolute;
+  top: 8%;
+  right: 8%;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: inherit;
+  background: rgba(255, 248, 228, 0.92);
+  box-shadow: 0 3px 8px rgba(64, 40, 22, 0.16);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.piece.black .piece-badge {
+  background: rgba(15, 34, 71, 0.9);
+  color: #ffffff;
+}
+
+.piece.placeholder-piece {
+  border-radius: 38%;
+}
+
+.piece.placeholder-piece.pawn {
+  border-radius: 44%;
+}
+
+.piece.placeholder-piece.white-pawn {
+  background-image: linear-gradient(180deg, #fffdf8 0%, #f7d788 100%);
+}
+
+.piece.placeholder-piece.white-rook {
+  background-image: linear-gradient(180deg, #fff7eb 0%, #ffb87a 100%);
+}
+
+.piece.placeholder-piece.white-knight {
+  background-image: linear-gradient(180deg, #fffaf3 0%, #ff8f7b 100%);
+}
+
+.piece.placeholder-piece.white-bishop {
+  background-image: linear-gradient(180deg, #fffdf5 0%, #8fd6a6 100%);
+}
+
+.piece.placeholder-piece.white-queen {
+  background-image: linear-gradient(180deg, #fffdf8 0%, #f6a5d9 100%);
+}
+
+.piece.placeholder-piece.white-king {
+  background-image: linear-gradient(180deg, #fff9f1 0%, #b8bbff 100%);
+}
+
+.piece.placeholder-piece.black-pawn {
+  background-image: linear-gradient(180deg, #6d95ea 0%, #234487 100%);
+}
+
+.piece.placeholder-piece.black-rook {
+  background-image: linear-gradient(180deg, #5a8bf2 0%, #1e3276 100%);
+}
+
+.piece.placeholder-piece.black-knight {
+  background-image: linear-gradient(180deg, #7b89ff 0%, #2d2b74 100%);
+}
+
+.piece.placeholder-piece.black-bishop {
+  background-image: linear-gradient(180deg, #5fbac9 0%, #20586f 100%);
+}
+
+.piece.placeholder-piece.black-queen {
+  background-image: linear-gradient(180deg, #946ef3 0%, #3b2878 100%);
+}
+
+.piece.placeholder-piece.black-king {
+  background-image: linear-gradient(180deg, #4c8af0 0%, #172c6f 100%);
 }
 
 @media (max-width: 760px) {
@@ -346,6 +473,12 @@ button {
 
   .piece {
     border-width: 3px;
+  }
+
+  .piece-badge {
+    min-width: 1.2rem;
+    height: 1.2rem;
+    font-size: 0.65rem;
   }
 
   .square.valid-move::before,
