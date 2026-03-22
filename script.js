@@ -896,7 +896,7 @@ function updateStatusText() {
     return;
   }
 
-  statusElement.textContent = "Two Player game";
+  statusElement.textContent = "";
 }
 
 function updateHud() {
@@ -942,6 +942,10 @@ function createCapturedPieceElement(piece) {
 }
 
 function renderCapturedPieces() {
+  if (!capturedWhiteElement || !capturedBlackElement) {
+    return;
+  }
+
   const targets = [
     { element: capturedWhiteElement, pieces: gameState.capturedPieces.white },
     { element: capturedBlackElement, pieces: gameState.capturedPieces.black },
