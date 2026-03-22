@@ -1120,16 +1120,6 @@ function updateStatusText() {
     return;
   }
 
-  if (isSinglePlayerGame() && gameState.currentTurn === "white") {
-    statusElement.textContent = `Your turn. Level ${gameState.level}.`;
-    return;
-  }
-
-  if (isSinglePlayerGame() && gameState.currentTurn === "black") {
-    statusElement.textContent = `Computer turn. Level ${gameState.level}.`;
-    return;
-  }
-
   statusElement.textContent = "";
 }
 

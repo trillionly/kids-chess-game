@@ -386,11 +386,15 @@ button {
 
 .level-grid {
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  width: 120%;
+  width: 144%;
   margin: 0 auto;
   position: relative;
   left: 50%;
   transform: translateX(-50%);
+}
+
+.level-grid .choice-button {
+  white-space: nowrap;
 }
 
 .choice-button,
