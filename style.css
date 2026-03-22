@@ -130,7 +130,7 @@ button {
 .start-card {
   width: min(100%, 944px);
   margin: 0 auto;
-  padding: 0 clamp(1.45rem, 3vw, 2.2rem) clamp(1.4rem, 2.3vw, 2rem);
+  padding: clamp(0.38rem, 0.9vw, 0.6rem) clamp(1.45rem, 3vw, 2.2rem) clamp(1.4rem, 2.3vw, 2rem);
   border-radius: 32px;
   text-align: center;
   position: relative;
