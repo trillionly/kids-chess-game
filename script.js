@@ -815,7 +815,7 @@ function createPromotionOptionButton(color, type) {
 
 function openPromotionChooser(piece) {
   gameState.pendingPromotion = piece;
-  promotionTitleElement.textContent = `${piece.color === "white" ? "White" : "Black"} Pawn Promotion`;
+  promotionTitleElement.textContent = "What do you want to change your pawn into?";
   promotionOptionsElement.innerHTML = "";
 
   for (const type of promotionTypes) {

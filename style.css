@@ -469,7 +469,7 @@ button {
 }
 
 .promotion-button {
-  min-height: 148px;
+  min-height: 196px;
   border: 1px solid rgba(255, 229, 179, 0.22);
   border-radius: 22px;
   background:
@@ -497,8 +497,8 @@ button {
 }
 
 .promotion-piece {
-  width: 88px;
-  height: 88px;
+  width: 132px;
+  height: 132px;
   display: flex;
   align-items: center;
   justify-content: center;
