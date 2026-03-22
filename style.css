@@ -34,6 +34,7 @@
   --start-card-padding-x: clamp(1.4rem, 3vw, 2.2rem);
   --start-card-padding-top: clamp(0.42rem, 0.7vw, 0.6rem);
   --start-card-padding-bottom: clamp(1.2rem, 2vw, 1.7rem);
+  --start-card-offset-y: -40px;
   --start-side-width: 250px;
   --start-hero-gap: clamp(0.2rem, 0.8vw, 0.6rem);
   --start-main-max-width: 620px;
@@ -154,6 +155,7 @@ button {
   padding: var(--start-card-padding-top) var(--start-card-padding-x) var(--start-card-padding-bottom);
   border-radius: 32px;
   position: relative;
+  transform: translateY(var(--start-card-offset-y));
   overflow: visible;
 }
 
@@ -276,7 +278,7 @@ button {
 
 .start-team-black .start-character-knight {
   position: relative;
-  left: -70px;
+  left: -80px;
 }
 
 .start-character.is-animated {
@@ -356,7 +358,10 @@ button {
 .button-row {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   width: var(--start-mode-width);
-  margin: 0 auto;
+  margin: 0;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .level-grid {
