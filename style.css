@@ -163,7 +163,11 @@ button {
 }
 
 .start-screen.single-mode-active .start-card {
-  transform: translateY(calc(var(--start-card-offset-y) - 30px));
+  transform: translateY(calc(var(--start-card-offset-y) - 15px));
+}
+
+.start-screen.single-mode-active .start-hero {
+  transform: translateY(calc(var(--start-content-offset-y) + 10px));
 }
 
 .start-card::before,
