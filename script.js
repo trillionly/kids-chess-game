@@ -36,12 +36,13 @@ const pieceSymbols = {
 };
 
 const gameConfig = {
-  pieceAssetExtensions: ["webp", "png"],
+  pieceAssetExtensions: ["png"],
   aiMoveDelayMs: 500,
 };
 
 const pieceAssetCatalog = createPieceAssetCatalog();
 const pieceAssetStatus = new Map();
+const warnedMissingAssets = new Set();
 
 const setupState = {
   mode: null,
@@ -207,6 +208,10 @@ function requestPieceAssetCheck(assetPath) {
   });
   image.addEventListener("error", () => {
     pieceAssetStatus.set(assetPath, "missing");
+    if (!warnedMissingAssets.has(assetPath)) {
+      console.warn(`Missing piece image: ${assetPath}`);
+      warnedMissingAssets.add(assetPath);
+    }
   });
   image.src = assetPath;
 }
@@ -633,7 +638,15 @@ function createPieceElement(piece) {
 
   if (visualState.useImage) {
     button.classList.add("image-piece");
-    button.style.backgroundImage = `url("${visualState.assetPath}")`;
+    const image = document.createElement("img");
+    image.className = "piece-image";
+    image.src = visualState.assetPath;
+    image.alt = "";
+    image.decoding = "async";
+    image.loading = "eager";
+    image.draggable = false;
+    image.setAttribute("aria-hidden", "true");
+    button.appendChild(image);
   } else {
     button.classList.add("placeholder-piece", `${piece.color}-${piece.type}`);
     for (const assetPath of getPieceAssetOptions(piece)) {
