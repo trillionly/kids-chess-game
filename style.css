@@ -159,11 +159,15 @@ button {
   border-radius: 32px;
   position: relative;
   transform: translateY(var(--start-card-offset-y));
+  transition:
+    transform 280ms ease,
+    padding 280ms ease,
+    box-shadow 280ms ease;
   overflow: visible;
 }
 
 .start-screen.single-mode-active .start-card {
-  transform: translateY(calc(var(--start-card-offset-y) - 15px));
+  transform: translateY(calc(var(--start-card-offset-y) - 30px));
 }
 
 .start-screen.single-mode-active .start-hero {
