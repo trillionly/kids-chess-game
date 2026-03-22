@@ -298,6 +298,26 @@ button {
   text-shadow: 0 1px 0 rgba(15, 10, 5, 0.45);
 }
 
+.choice-button[data-mode-option="single"] {
+  background:
+    linear-gradient(180deg, rgba(255, 249, 223, 0.18) 0%, rgba(252, 201, 103, 0.08) 100%),
+    rgba(94, 63, 37, 0.94);
+  border-color: rgba(255, 219, 143, 0.32);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 243, 209, 0.22),
+    0 12px 22px rgba(7, 5, 11, 0.22);
+}
+
+.choice-button[data-mode-option="two"] {
+  background:
+    linear-gradient(180deg, rgba(205, 227, 255, 0.16) 0%, rgba(90, 132, 220, 0.08) 100%),
+    rgba(43, 56, 97, 0.94);
+  border-color: rgba(159, 194, 255, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(220, 234, 255, 0.18),
+    0 12px 22px rgba(7, 5, 11, 0.22);
+}
+
 .choice-button:hover,
 .small-button:hover,
 .piece:hover {
