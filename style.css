@@ -32,7 +32,7 @@
   --shadow-strong: 0 28px 80px rgba(3, 2, 8, 0.54);
   --start-card-max-width: 980px;
   --start-card-padding-x: clamp(1.4rem, 3vw, 2.2rem);
-  --start-card-padding-top: clamp(0.65rem, 1.1vw, 0.95rem);
+  --start-card-padding-top: clamp(0.32rem, 0.55vw, 0.48rem);
   --start-card-padding-bottom: clamp(1.45rem, 2.3vw, 2rem);
   --start-side-width: 220px;
   --start-hero-gap: clamp(0.4rem, 1.3vw, 1rem);
@@ -279,6 +279,9 @@ button {
 }
 
 .start-card h1 {
+  width: 100%;
+  margin-inline: auto;
+  text-align: center;
   white-space: nowrap;
   position: relative;
   z-index: 1;
