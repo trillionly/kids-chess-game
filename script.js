@@ -3,10 +3,10 @@ const statusElement = document.getElementById("game-status");
 const startScreenElement = document.getElementById("start-screen");
 const gameScreenElement = document.getElementById("game-screen");
 const levelGroupElement = document.getElementById("level-group");
+const startHelpTextElement = document.getElementById("start-help-text");
 const modeDisplayElement = document.getElementById("mode-display");
 const levelDisplayElement = document.getElementById("level-display");
 const turnDisplayElement = document.getElementById("turn-display");
-const startGameButton = document.getElementById("start-game-button");
 const newGameButton = document.getElementById("new-game-button");
 
 const modeOptionButtons = Array.from(document.querySelectorAll("[data-mode-option]"));
@@ -40,14 +40,14 @@ const gameConfig = {
 };
 
 const setupState = {
-  mode: "single",
-  level: 1,
+  mode: null,
+  level: null,
 };
 
 const gameState = {
   screen: "start",
-  mode: "single",
-  level: 1,
+  mode: null,
+  level: null,
   currentTurn: "white",
   selectedPiece: null,
   validMoves: [],
@@ -121,7 +121,14 @@ function updateSetupControls() {
     button.classList.toggle("is-selected", Number(button.dataset.levelOption) === setupState.level);
   }
 
-  levelGroupElement.classList.toggle("is-hidden", setupState.mode !== "single");
+  const showLevels = setupState.mode === "single";
+  levelGroupElement.classList.toggle("is-hidden", !showLevels);
+
+  if (showLevels) {
+    startHelpTextElement.textContent = "Choose a level to start the single player game.";
+  } else {
+    startHelpTextElement.textContent = "Choose how you want to play.";
+  }
 }
 
 function getPieceAssetPath(piece) {
@@ -283,7 +290,7 @@ function shouldShowMoveDots() {
 }
 
 function shouldShowMoveHighlights() {
-  return gameState.mode === "two-player";
+  return gameState.mode === "two";
 }
 
 function getAllValidMoves(color) {
@@ -507,7 +514,7 @@ function updateStatusText() {
 
 function updateHud() {
   modeDisplayElement.textContent = gameState.mode === "single" ? "Single Player" : "Two Player";
-  levelDisplayElement.textContent = gameState.mode === "single" ? String(gameState.level) : "Local";
+  levelDisplayElement.textContent = gameState.level === null ? "-" : String(gameState.level);
   turnDisplayElement.textContent = gameState.currentTurn[0].toUpperCase() + gameState.currentTurn.slice(1);
 }
 
@@ -599,18 +606,31 @@ function attachSetupEvents() {
   for (const button of modeOptionButtons) {
     button.addEventListener("click", () => {
       setupState.mode = button.dataset.modeOption;
+
+       if (setupState.mode === "two") {
+        setupState.level = null;
+        updateSetupControls();
+        startGame();
+        return;
+      }
+
+      if (setupState.level === null) {
+        setupState.level = 1;
+      }
+
       updateSetupControls();
     });
   }
 
   for (const button of levelOptionButtons) {
     button.addEventListener("click", () => {
+      setupState.mode = "single";
       setupState.level = Number(button.dataset.levelOption);
       updateSetupControls();
+      startGame();
     });
   }
 
-  startGameButton.addEventListener("click", startGame);
   newGameButton.addEventListener("click", showStartScreen);
 }
 

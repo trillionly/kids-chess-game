@@ -11,32 +11,29 @@
     <section id="start-screen" class="start-screen">
       <div class="start-card">
         <h1>Kids Chess Game</h1>
-        <p class="start-text">Choose how you want to play, then jump into the game.</p>
+        <p id="start-help-text" class="start-text">Choose how you want to play.</p>
 
         <div class="selection-group" aria-label="Game mode">
-          <h2>Game Mode</h2>
           <div class="button-row">
-            <button type="button" class="choice-button is-selected" data-mode-option="single">
+            <button type="button" class="choice-button" data-mode-option="single">
               Single Player
             </button>
-            <button type="button" class="choice-button" data-mode-option="two-player">
+            <button type="button" class="choice-button" data-mode-option="two">
               Two Player
             </button>
           </div>
         </div>
 
-        <div id="level-group" class="selection-group" aria-label="Difficulty level">
-          <h2>Difficulty</h2>
+        <div id="level-group" class="selection-group is-hidden" aria-label="Difficulty level">
+          <h2>Choose a Level</h2>
           <div class="level-grid">
-            <button type="button" class="choice-button is-selected" data-level-option="1">Level 1</button>
+            <button type="button" class="choice-button" data-level-option="1">Level 1</button>
             <button type="button" class="choice-button" data-level-option="2">Level 2</button>
             <button type="button" class="choice-button" data-level-option="3">Level 3</button>
             <button type="button" class="choice-button" data-level-option="4">Level 4</button>
             <button type="button" class="choice-button" data-level-option="5">Level 5</button>
           </div>
         </div>
-
-        <button id="start-game-button" type="button" class="start-button">Start Game</button>
       </div>
     </section>
 
@@ -53,7 +50,7 @@
         </div>
         <div class="info-pill">
           <span class="info-label">Level</span>
-          <strong id="level-display">1</strong>
+          <strong id="level-display">-</strong>
         </div>
         <div class="info-pill">
           <span class="info-label">Turn</span>
