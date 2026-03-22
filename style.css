@@ -357,11 +357,10 @@ button {
 }
 
 .board-shell {
-  width: min(98vw, 1180px);
+  width: min(95vw, 980px);
   display: grid;
-  grid-template-columns: minmax(64px, 88px) minmax(0, 980px) minmax(64px, 88px);
-  align-items: stretch;
-  gap: 0.8rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.35rem;
 }
 
 .board-area {
@@ -371,20 +370,21 @@ button {
 
 .captured-strip {
   display: flex;
-  flex-direction: column;
   flex-wrap: wrap;
-  align-content: center;
-  gap: 0.35rem;
-  min-height: 100%;
-  padding: 0.45rem 0;
+  gap: 0.28rem;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 0.15rem;
 }
 
-.captured-strip-left {
-  align-items: flex-end;
+.captured-strip-top {
+  justify-content: flex-start;
+  align-items: center;
 }
 
-.captured-strip-right {
-  align-items: flex-start;
+.captured-strip-bottom {
+  justify-content: flex-end;
+  align-items: center;
 }
 
 #turn-pill {
@@ -979,13 +979,10 @@ button {
   }
 
   .board-shell {
-    grid-template-columns: 1fr;
     gap: 0.65rem;
   }
 
   .captured-strip {
-    flex-direction: row;
-    justify-content: center;
     min-height: unset;
     padding: 0;
   }
