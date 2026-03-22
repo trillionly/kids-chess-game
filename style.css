@@ -779,14 +779,14 @@ button {
 }
 
 .captured-strip-left {
-  left: -109px;
-  top: calc(2% + 230px);
+  left: -114px;
+  top: calc(2% + 220px);
   direction: rtl;
   justify-items: end;
 }
 
 .captured-strip-right {
-  right: -129px;
+  right: -124px;
   bottom: 1%;
   align-content: end;
   justify-items: start;
