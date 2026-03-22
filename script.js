@@ -7,6 +7,7 @@ const startHelpTextElement = document.getElementById("start-help-text");
 const modeDisplayElement = document.getElementById("mode-display");
 const levelDisplayElement = document.getElementById("level-display");
 const turnDisplayElement = document.getElementById("turn-display");
+const turnPillElement = document.getElementById("turn-pill");
 const newGameButton = document.getElementById("new-game-button");
 const animationLayerElement = document.getElementById("animation-layer");
 
@@ -753,31 +754,30 @@ function handleSquareClick(squareName) {
 }
 
 function updateStatusText() {
-  const turnName = gameState.currentTurn[0].toUpperCase() + gameState.currentTurn.slice(1);
-  const modeLabel = gameState.mode === "single" ? "Single Player" : "Two Player";
-
   if (gameState.isComputerThinking) {
-    statusElement.textContent = `Black is thinking in ${modeLabel}.`;
+    statusElement.textContent = "Black is thinking...";
     return;
   }
 
   if (isSinglePlayerGame() && gameState.currentTurn === "white") {
-    statusElement.textContent = `Your turn as White. Level ${gameState.level}.`;
+    statusElement.textContent = `Your turn. Level ${gameState.level}.`;
     return;
   }
 
   if (isSinglePlayerGame() && gameState.currentTurn === "black") {
-    statusElement.textContent = `Computer turn as Black. Level ${gameState.level}.`;
+    statusElement.textContent = `Computer turn. Level ${gameState.level}.`;
     return;
   }
 
-  statusElement.textContent = `${turnName}'s turn in ${modeLabel}.`;
+  statusElement.textContent = "Two Player game";
 }
 
 function updateHud() {
   modeDisplayElement.textContent = gameState.mode === "single" ? "Single Player" : "Two Player";
   levelDisplayElement.textContent = gameState.level === null ? "-" : String(gameState.level);
   turnDisplayElement.textContent = gameState.currentTurn[0].toUpperCase() + gameState.currentTurn.slice(1);
+  turnPillElement.classList.toggle("white-turn", gameState.currentTurn === "white");
+  turnPillElement.classList.toggle("black-turn", gameState.currentTurn === "black");
 }
 
 function createPieceElement(piece) {

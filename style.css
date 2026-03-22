@@ -304,12 +304,12 @@ button {
 }
 
 .game-hud {
-  width: min(92vw, 820px);
+  width: min(94vw, 900px);
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.95rem;
-  padding: 1.1rem;
-  border-radius: 26px;
+  gap: 0.7rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 24px;
   position: relative;
   overflow: hidden;
 }
@@ -324,9 +324,9 @@ button {
 }
 
 .info-pill {
-  min-height: 78px;
-  padding: 0.85rem 1rem;
-  border-radius: 18px;
+  min-height: 60px;
+  padding: 0.55rem 0.85rem;
+  border-radius: 16px;
   background:
     linear-gradient(180deg, rgba(255, 248, 231, 0.08) 0%, rgba(255, 225, 170, 0.02) 100%),
     rgba(255, 246, 228, 0.05);
@@ -339,7 +339,7 @@ button {
 }
 
 .info-label {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   opacity: 0.74;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -347,14 +347,53 @@ button {
 }
 
 .info-pill strong {
-  margin-top: 0.2rem;
-  font-size: 1.1rem;
+  margin-top: 0.08rem;
+  font-size: 1rem;
   color: #fff5dd;
 }
 
 .board-area {
-  width: min(94vw, 860px);
+  width: min(95vw, 980px);
   position: relative;
+}
+
+#turn-pill {
+  position: relative;
+  transition:
+    box-shadow 220ms ease,
+    background 220ms ease,
+    border-color 220ms ease,
+    transform 220ms ease;
+}
+
+#turn-pill.white-turn {
+  background:
+    linear-gradient(180deg, rgba(255, 250, 236, 0.2) 0%, rgba(255, 233, 182, 0.08) 100%),
+    rgba(255, 248, 232, 0.08);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 232, 182, 0.18),
+    inset 0 1px 0 rgba(255, 248, 232, 0.2),
+    0 0 18px rgba(255, 221, 148, 0.18);
+}
+
+#turn-pill.black-turn {
+  background:
+    linear-gradient(180deg, rgba(120, 46, 37, 0.24) 0%, rgba(58, 24, 26, 0.12) 100%),
+    rgba(82, 34, 32, 0.08);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 127, 108, 0.18),
+    inset 0 1px 0 rgba(255, 193, 182, 0.08),
+    0 0 18px rgba(194, 74, 62, 0.18);
+}
+
+#turn-pill.white-turn .info-label,
+#turn-pill.white-turn strong {
+  color: #fff3d7;
+}
+
+#turn-pill.black-turn .info-label,
+#turn-pill.black-turn strong {
+  color: #ffe4db;
 }
 
 .board-stage {
@@ -622,8 +661,8 @@ button {
 
 .piece-img,
 .piece-image {
-  width: 110%;
-  height: 110%;
+  width: 114%;
+  height: 114%;
   object-fit: contain;
   object-position: center center;
   display: block;
@@ -830,6 +869,11 @@ button {
   .board-area,
   .game-hud {
     width: 100%;
+  }
+
+  .game-hud {
+    gap: 0.6rem;
+    padding: 0.7rem;
   }
 
   .start-screen {
