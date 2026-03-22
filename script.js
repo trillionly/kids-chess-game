@@ -182,6 +182,8 @@ function showStartScreen() {
     gameState.aiTimerId = null;
   }
 
+  setupState.mode = null;
+  setupState.level = null;
   gameState.screen = "start";
   gameState.selectedPiece = null;
   gameState.validMoves = [];
@@ -838,7 +840,7 @@ function openPromotionChooser(piece) {
 }
 
 function maybeHandlePromotionAfterMove(moveResult) {
-  if (!moveResult?.movingPiece || !isPromotionSquare(moveResult.movingPiece)) {
+  if (!moveResult?.movingPiece || moveResult?.capturedPiece?.type === "king" || !isPromotionSquare(moveResult.movingPiece)) {
     return false;
   }
 
@@ -1040,14 +1042,14 @@ function maybeRunComputerTurn() {
     };
 
     const moveResult = performMove(computerMove.fromSquare, computerMove.toSquare);
-    maybeHandlePromotionAfterMove(moveResult);
-    renderBoard();
-    animateMoveTransition(moveSnapshot);
     if (moveResult?.capturedPiece?.type === "king") {
       endGameWithWinner("black");
       renderBoard();
       return;
     }
+    maybeHandlePromotionAfterMove(moveResult);
+    renderBoard();
+    animateMoveTransition(moveSnapshot);
     playSoundEffect(moveResult?.capturedPiece ? "capture" : "move");
   }, gameConfig.aiMoveDelayMs);
 }
@@ -1071,14 +1073,14 @@ function handleSquareClick(squareName) {
     };
 
     const moveResult = performMove(gameState.selectedPiece.square, squareName);
-    const promotionHandled = maybeHandlePromotionAfterMove(moveResult);
-    renderBoard();
-    animateMoveTransition(moveSnapshot);
     if (moveResult?.capturedPiece?.type === "king") {
       endGameWithWinner(moveResult.movingPiece.color);
       renderBoard();
       return;
     }
+    const promotionHandled = maybeHandlePromotionAfterMove(moveResult);
+    renderBoard();
+    animateMoveTransition(moveSnapshot);
     playSoundEffect(moveResult?.capturedPiece ? "capture" : "move");
     if (promotionHandled) {
       return;

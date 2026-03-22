@@ -33,7 +33,7 @@
   --start-card-max-width: 930px;
   --start-card-padding-x: clamp(1.4rem, 3vw, 2.2rem);
   --start-card-padding-top: clamp(0.42rem, 0.7vw, 0.6rem);
-  --start-card-padding-bottom: calc(clamp(1.2rem, 2vw, 1.7rem) - 40px);
+  --start-card-padding-bottom: calc(clamp(1.2rem, 2vw, 1.7rem) + 20px);
   --start-card-offset-y: -30px;
   --start-content-offset-y: -55px;
   --start-side-width: 250px;
@@ -349,6 +349,7 @@ button {
 .start-text {
   position: relative;
   top: var(--start-help-offset-y);
+  white-space: nowrap;
 }
 
 .selection-group {
@@ -361,6 +362,10 @@ button {
   margin: 0 0 1rem;
   font-size: clamp(1.2rem, 2vw, 1.55rem);
   color: #fff0cf;
+}
+
+#level-group h2 {
+  margin-top: 40px;
 }
 
 .button-row,
@@ -381,6 +386,11 @@ button {
 
 .level-grid {
   grid-template-columns: repeat(5, minmax(0, 1fr));
+  width: 120%;
+  margin: 0 auto;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .choice-button,
@@ -429,6 +439,17 @@ button {
   border-color: rgba(159, 194, 255, 0.28);
   box-shadow:
     inset 0 1px 0 rgba(220, 234, 255, 0.18),
+    0 12px 22px rgba(7, 5, 11, 0.22);
+}
+
+#level-group .choice-button,
+#level-group .choice-button.is-selected {
+  background:
+    linear-gradient(180deg, rgba(255, 249, 223, 0.18) 0%, rgba(252, 201, 103, 0.08) 100%),
+    rgba(94, 63, 37, 0.94);
+  border-color: rgba(255, 219, 143, 0.32);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 243, 209, 0.22),
     0 12px 22px rgba(7, 5, 11, 0.22);
 }
 
@@ -678,7 +699,7 @@ button {
 .victory-card {
   min-width: min(90%, 620px);
   display: grid;
-  grid-template-columns: 100px minmax(0, 1fr) 100px;
+  grid-template-columns: 138px minmax(0, 1fr) 138px;
   align-items: center;
   gap: 0.8rem;
   padding: 1.15rem 1.2rem;
@@ -712,15 +733,15 @@ button {
 }
 
 .victory-piece-slot {
-  height: 92px;
+  height: 138px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .victory-piece {
-  width: 92px;
-  height: 92px;
+  width: 138px;
+  height: 138px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -734,15 +755,15 @@ button {
 }
 
 .victory-piece-label {
-  font-size: 2rem;
+  font-size: 3rem;
   font-weight: 800;
   color: #fff1d8;
 }
 
 .confetti-piece {
   position: absolute;
-  width: 12px;
-  height: 18px;
+  width: 24px;
+  height: 36px;
   border-radius: 4px;
   opacity: 0.92;
   pointer-events: none;
