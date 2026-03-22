@@ -10,7 +10,17 @@
   <main class="app">
     <section id="start-screen" class="start-screen">
       <div class="start-card">
-        <h1>Kids Chess Game</h1>
+        <div class="start-hero">
+          <div class="start-team start-team-white" aria-hidden="true">
+            <img class="start-character start-character-king" src="assets/pieces/white-king.png" alt="">
+            <img class="start-character start-character-bishop" src="assets/pieces/white-bishop.png" alt="">
+          </div>
+          <h1>Kids Chess Game</h1>
+          <div class="start-team start-team-black" aria-hidden="true">
+            <img class="start-character start-character-king" src="assets/pieces/black-king.png" alt="">
+            <img class="start-character start-character-knight" src="assets/pieces/black-knight.png" alt="">
+          </div>
+        </div>
         <p id="start-help-text" class="start-text">Choose how you want to play.</p>
 
         <div class="selection-group" aria-label="Game mode">
@@ -62,6 +72,16 @@
       <section class="board-shell" aria-label="Chess board game area">
         <div id="captured-white" class="captured-strip captured-strip-left" aria-label="Captured white pieces"></div>
         <section class="board-area">
+          <div id="victory-overlay" class="victory-overlay is-hidden" aria-live="polite">
+            <div class="victory-card">
+              <div id="victory-left-piece" class="victory-piece-slot" aria-hidden="true"></div>
+              <div class="victory-text">
+                <h2 id="victory-title">White Wins!</h2>
+                <p id="victory-message">The king has fallen.</p>
+              </div>
+              <div id="victory-right-piece" class="victory-piece-slot" aria-hidden="true"></div>
+            </div>
+          </div>
           <div class="board-stage">
             <div id="board-frame" class="board-frame">
               <div

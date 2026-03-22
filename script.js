@@ -13,6 +13,11 @@ const animationLayerElement = document.getElementById("animation-layer");
 const boardFrameElement = document.getElementById("board-frame");
 const capturedWhiteElement = document.getElementById("captured-white");
 const capturedBlackElement = document.getElementById("captured-black");
+const victoryOverlayElement = document.getElementById("victory-overlay");
+const victoryTitleElement = document.getElementById("victory-title");
+const victoryMessageElement = document.getElementById("victory-message");
+const victoryLeftPieceElement = document.getElementById("victory-left-piece");
+const victoryRightPieceElement = document.getElementById("victory-right-piece");
 
 const modeOptionButtons = Array.from(document.querySelectorAll("[data-mode-option]"));
 const levelOptionButtons = Array.from(document.querySelectorAll("[data-level-option]"));
@@ -46,6 +51,7 @@ const gameConfig = {
   soundAssets: {
     move: "assets/audio/move.mp3",
     capture: "assets/audio/capture.mp3",
+    victory: "assets/audio/victory.mp3",
   },
 };
 
@@ -76,6 +82,8 @@ const gameState = {
     white: [],
     black: [],
   },
+  winner: null,
+  isGameOver: false,
   isComputerThinking: false,
   aiTimerId: null,
 };
@@ -136,6 +144,8 @@ function resetBoardState() {
     white: [],
     black: [],
   };
+  gameState.winner = null;
+  gameState.isGameOver = false;
   gameState.isComputerThinking = false;
 }
 
@@ -161,6 +171,8 @@ function showStartScreen() {
   gameState.selectedPiece = null;
   gameState.validMoves = [];
   gameState.isComputerThinking = false;
+  gameState.winner = null;
+  gameState.isGameOver = false;
   startScreenElement.classList.remove("is-hidden");
   gameScreenElement.classList.add("is-hidden");
   updateSetupControls();
@@ -335,6 +347,18 @@ function playFallbackToneSequence(config) {
 }
 
 function playFallbackSound(kind) {
+  if (kind === "victory") {
+    playFallbackToneSequence({
+      notes: [
+        { frequency: 523, start: 0, duration: 0.2, volume: 0.06, wave: "triangle" },
+        { frequency: 659, start: 0.09, duration: 0.22, volume: 0.055, wave: "triangle" },
+        { frequency: 784, start: 0.18, duration: 0.3, volume: 0.05, wave: "sine" },
+        { frequency: 1046, start: 0.3, duration: 0.34, volume: 0.04, wave: "sine" },
+      ],
+    });
+    return;
+  }
+
   if (kind === "capture") {
     playFallbackToneSequence({
       notes: [
@@ -715,6 +739,76 @@ function performMove(fromSquare, toSquare) {
   };
 }
 
+function createCelebrationPiece(color, type) {
+  const piece = createPieceData(color, type, `${color}-${type}-victory`);
+  const visualState = getPieceVisualState(piece);
+  const wrapper = document.createElement("div");
+  wrapper.className = `victory-piece ${color} ${type}`;
+
+  if (visualState.useImage) {
+    const image = document.createElement("img");
+    image.className = "victory-piece-img";
+    image.src = visualState.assetPath;
+    image.alt = "";
+    image.decoding = "async";
+    image.loading = "eager";
+    image.draggable = false;
+    wrapper.appendChild(image);
+  } else {
+    wrapper.classList.add("placeholder-piece", `${color}-${type}`);
+    const label = document.createElement("span");
+    label.className = "victory-piece-label";
+    label.textContent = pieceSymbols[color][type];
+    wrapper.appendChild(label);
+  }
+
+  return wrapper;
+}
+
+function launchConfetti() {
+  const colors = ["#ffe798", "#ffd1a3", "#b8e1ff", "#ffb7a8", "#fff6d8"];
+
+  for (let index = 0; index < 22; index += 1) {
+    const piece = document.createElement("span");
+    piece.className = "confetti-piece";
+    piece.style.left = `${Math.random() * 100}%`;
+    piece.style.top = `${8 + Math.random() * 12}%`;
+    piece.style.background = colors[index % colors.length];
+    piece.style.animationDelay = `${Math.random() * 0.16}s`;
+    piece.style.animationDuration = `${2.2 + Math.random() * 0.9}s`;
+    piece.style.setProperty("--confetti-drift", `${-80 + Math.random() * 160}px`);
+    piece.style.setProperty("--confetti-rotate", `${180 + Math.random() * 320}deg`);
+    victoryOverlayElement.appendChild(piece);
+
+    window.setTimeout(() => {
+      piece.remove();
+    }, 3400);
+  }
+}
+
+function endGameWithWinner(winnerColor) {
+  gameState.winner = winnerColor;
+  gameState.isGameOver = true;
+  gameState.isComputerThinking = false;
+
+  if (gameState.aiTimerId) {
+    window.clearTimeout(gameState.aiTimerId);
+    gameState.aiTimerId = null;
+  }
+
+  const winnerName = winnerColor[0].toUpperCase() + winnerColor.slice(1);
+  statusElement.textContent = `${winnerName} wins!`;
+  victoryTitleElement.textContent = `${winnerName} Wins!`;
+  victoryMessageElement.textContent = "The king has fallen!";
+  victoryLeftPieceElement.innerHTML = "";
+  victoryRightPieceElement.innerHTML = "";
+  victoryLeftPieceElement.appendChild(createCelebrationPiece(winnerColor, "king"));
+  victoryRightPieceElement.appendChild(createCelebrationPiece(winnerColor, "queen"));
+  victoryOverlayElement.classList.remove("is-hidden");
+  playSoundEffect("victory");
+  launchConfetti();
+}
+
 function buildAnimationClone(sourceElement, rect) {
   const clone = sourceElement.cloneNode(true);
   clone.classList.remove("selected", "is-arriving-piece");
@@ -802,7 +896,7 @@ function animateMoveTransition(moveSnapshot) {
 }
 
 function maybeRunComputerTurn() {
-  if (!isSinglePlayerGame() || gameState.currentTurn !== "black") {
+  if (!isSinglePlayerGame() || gameState.currentTurn !== "black" || gameState.isGameOver) {
     return;
   }
 
@@ -832,12 +926,17 @@ function maybeRunComputerTurn() {
     const moveResult = performMove(computerMove.fromSquare, computerMove.toSquare);
     renderBoard();
     animateMoveTransition(moveSnapshot);
+    if (moveResult?.capturedPiece?.type === "king") {
+      endGameWithWinner("black");
+      renderBoard();
+      return;
+    }
     playSoundEffect(moveResult?.capturedPiece ? "capture" : "move");
   }, gameConfig.aiMoveDelayMs);
 }
 
 function handleSquareClick(squareName) {
-  if (gameState.screen !== "game" || gameState.isComputerThinking || !isHumanTurn()) {
+  if (gameState.screen !== "game" || gameState.isComputerThinking || gameState.isGameOver || !isHumanTurn()) {
     return;
   }
 
@@ -857,6 +956,11 @@ function handleSquareClick(squareName) {
     const moveResult = performMove(gameState.selectedPiece.square, squareName);
     renderBoard();
     animateMoveTransition(moveSnapshot);
+    if (moveResult?.capturedPiece?.type === "king") {
+      endGameWithWinner(moveResult.movingPiece.color);
+      renderBoard();
+      return;
+    }
     playSoundEffect(moveResult?.capturedPiece ? "capture" : "move");
     maybeRunComputerTurn();
     return;
@@ -882,6 +986,12 @@ function handleSquareClick(squareName) {
 }
 
 function updateStatusText() {
+  if (gameState.isGameOver && gameState.winner) {
+    const winnerName = gameState.winner[0].toUpperCase() + gameState.winner.slice(1);
+    statusElement.textContent = `${winnerName} wins!`;
+    return;
+  }
+
   if (gameState.isComputerThinking) {
     statusElement.textContent = "Black is thinking...";
     return;
@@ -908,6 +1018,7 @@ function updateHud() {
   turnPillElement.classList.toggle("black-turn", gameState.currentTurn === "black");
   boardFrameElement.classList.toggle("white-turn-glow", gameState.currentTurn === "white");
   boardFrameElement.classList.toggle("black-turn-glow", gameState.currentTurn === "black");
+  victoryOverlayElement.classList.toggle("is-hidden", !gameState.isGameOver);
 }
 
 function createCapturedPieceElement(piece) {
