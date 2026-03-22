@@ -8,6 +8,8 @@ const modeDisplayElement = document.getElementById("mode-display");
 const levelDisplayElement = document.getElementById("level-display");
 const turnDisplayElement = document.getElementById("turn-display");
 const turnPillElement = document.getElementById("turn-pill");
+const guideToggleButton = document.getElementById("guide-toggle-button");
+const guideDisplayElement = document.getElementById("guide-display");
 const newGameButton = document.getElementById("new-game-button");
 const animationLayerElement = document.getElementById("animation-layer");
 const boardFrameElement = document.getElementById("board-frame");
@@ -97,6 +99,7 @@ const gameState = {
   pendingPromotion: null,
   isComputerThinking: false,
   aiTimerId: null,
+  moveGuideEnabled: true,
 };
 
 function createStartingPieces() {
@@ -612,11 +615,11 @@ function isHumanTurn() {
 }
 
 function shouldShowMoveDots() {
-  return isSinglePlayerGame() && gameState.level <= 3 && gameState.currentTurn === "white";
+  return gameState.moveGuideEnabled && isSinglePlayerGame() && gameState.level <= 3 && gameState.currentTurn === "white";
 }
 
 function shouldShowMoveHighlights() {
-  return gameState.mode === "two";
+  return gameState.moveGuideEnabled && gameState.mode === "two";
 }
 
 function getAllValidMoves(color, pieces = gameState.pieces) {
@@ -1132,6 +1135,9 @@ function updateHud() {
   modeDisplayElement.textContent = gameState.mode === "single" ? "Single Player" : "Two Player";
   levelDisplayElement.textContent = gameState.level === null ? "-" : String(gameState.level);
   turnDisplayElement.textContent = gameState.currentTurn[0].toUpperCase() + gameState.currentTurn.slice(1);
+  guideDisplayElement.textContent = gameState.moveGuideEnabled ? "On" : "Off";
+  guideToggleButton.setAttribute("aria-pressed", String(gameState.moveGuideEnabled));
+  guideToggleButton.classList.toggle("is-off", !gameState.moveGuideEnabled);
   turnPillElement.classList.toggle("white-turn", gameState.currentTurn === "white");
   turnPillElement.classList.toggle("black-turn", gameState.currentTurn === "black");
   boardFrameElement.classList.toggle("white-turn-glow", gameState.currentTurn === "white");
@@ -1362,6 +1368,10 @@ function attachSetupEvents() {
   }
 
   newGameButton.addEventListener("click", showStartScreen);
+  guideToggleButton.addEventListener("click", () => {
+    gameState.moveGuideEnabled = !gameState.moveGuideEnabled;
+    renderBoard();
+  });
 }
 
 attachSetupEvents();
