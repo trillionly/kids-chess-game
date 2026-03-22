@@ -765,7 +765,7 @@ button {
 
 .captured-strip-left {
   left: -109px;
-  top: calc(2% + 220px);
+  top: calc(2% + 230px);
   direction: rtl;
   justify-items: end;
 }
@@ -779,12 +779,12 @@ button {
 
 .captured-strip-left .captured-piece:nth-child(even) {
   position: relative;
-  left: 10px;
+  left: 15px;
 }
 
 .captured-strip-right .captured-piece:nth-child(even) {
   position: relative;
-  left: -10px;
+  left: -15px;
 }
 
 #turn-pill {
@@ -1363,8 +1363,8 @@ button {
 }
 
 .captured-piece {
-  width: 70px;
-  height: 70px;
+  width: 81px;
+  height: 81px;
   display: flex;
   align-items: center;
   justify-content: center;
