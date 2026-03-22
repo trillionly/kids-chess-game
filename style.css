@@ -34,7 +34,7 @@
   --start-card-padding-x: clamp(1.4rem, 3vw, 2.2rem);
   --start-card-padding-top: clamp(0.42rem, 0.7vw, 0.6rem);
   --start-card-padding-bottom: calc(clamp(1.2rem, 2vw, 1.7rem) - 40px);
-  --start-card-offset-y: -10px;
+  --start-card-offset-y: -25px;
   --start-content-offset-y: -50px;
   --start-side-width: 250px;
   --start-hero-gap: clamp(0.2rem, 0.8vw, 0.6rem);
@@ -43,10 +43,10 @@
   --start-button-height: 42px;
   --start-button-font-size: 1.08rem;
   --start-button-gap: 0.61rem;
-  --start-white-x: -18px;
-  --start-white-y: 14px;
-  --start-black-x: 18px;
-  --start-black-y: 14px;
+  --start-white-x: -28px;
+  --start-white-y: 24px;
+  --start-black-x: 8px;
+  --start-black-y: 24px;
   --start-white-team-gap: 1cm;
   --start-black-team-gap: 1cm;
   --start-character-size: 176px;
