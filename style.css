@@ -657,6 +657,7 @@ button {
 .board-frame.white-turn-glow {
   box-shadow:
     0 18px 36px rgba(15, 10, 13, 0.34),
+    0 0 28px rgba(255, 212, 134, 0.16),
     0 4px 14px rgba(255, 229, 187, 0.08),
     inset 0 1px 0 rgba(255, 243, 217, 0.28),
     inset 0 0 0 1px rgba(82, 53, 39, 0.34);
@@ -665,6 +666,7 @@ button {
 .board-frame.black-turn-glow {
   box-shadow:
     0 18px 36px rgba(15, 10, 13, 0.34),
+    0 0 28px rgba(255, 212, 134, 0.16),
     0 4px 14px rgba(255, 229, 187, 0.08),
     inset 0 1px 0 rgba(255, 243, 217, 0.28),
     inset 0 0 0 1px rgba(82, 53, 39, 0.34);
@@ -694,29 +696,11 @@ button {
 }
 
 .board-frame.white-turn-glow::after {
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 247, 229, 0) 0%,
-      rgba(255, 247, 229, 0) 82%,
-      rgba(255, 247, 229, 0.18) 90%,
-      rgba(255, 247, 229, 0.48) 95%,
-      rgba(255, 247, 229, 0.12) 100%
-    );
-  opacity: 1;
+  opacity: 0;
 }
 
 .board-frame.black-turn-glow::after {
-  background:
-    linear-gradient(
-      180deg,
-      rgba(245, 248, 252, 0.12) 0%,
-      rgba(245, 248, 252, 0.42) 5%,
-      rgba(245, 248, 252, 0.16) 10%,
-      rgba(245, 248, 252, 0) 18%,
-      rgba(245, 248, 252, 0) 100%
-    );
-  opacity: 1;
+  opacity: 0;
 }
 
 .chessboard {
@@ -972,6 +956,16 @@ button {
   filter: drop-shadow(0 14px 18px rgba(10, 8, 14, 0.24));
 }
 
+.piece.image-piece:not(.pawn) .piece-img,
+.piece.image-piece:not(.pawn) .piece-image {
+  transform: scale(1.176);
+}
+
+.piece.image-piece:not(.pawn):hover .piece-img,
+.piece.image-piece:not(.pawn):hover .piece-image {
+  transform: scale(1.228);
+}
+
 .piece:hover::after {
   opacity: 0.62;
   transform: scale(0.94);
@@ -981,6 +975,11 @@ button {
 .piece.image-piece.selected .piece-image {
   transform: scale(1.22);
   filter: drop-shadow(0 16px 20px rgba(10, 8, 14, 0.28));
+}
+
+.piece.image-piece:not(.pawn).selected .piece-img,
+.piece.image-piece:not(.pawn).selected .piece-image {
+  transform: scale(1.281);
 }
 
 .piece.is-arriving-piece {
