@@ -774,7 +774,6 @@ function createSquare(rank, fileIndex) {
 
   square.className = `square ${isLightSquare ? "light" : "dark"}`;
   square.dataset.square = squareName;
-  square.dataset.label = squareName;
   square.setAttribute("role", "gridcell");
 
   if (move) {

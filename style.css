@@ -394,7 +394,7 @@ button {
 
 .chessboard {
   width: 100%;
-  aspect-ratio: 1;
+  aspect-ratio: 1 / 1;
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   grid-template-rows: repeat(8, 1fr);
@@ -438,60 +438,12 @@ button {
     linear-gradient(180deg, #7a5a49 0%, #4f372f 100%);
 }
 
-.square::marker {
-  content: "";
-}
-
-.square[data-label] > * {
-  position: relative;
-  z-index: 1;
-}
-
-.square[data-label] .piece {
-  z-index: 2;
-}
-
-.square[data-label] {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 247, 226, 0.1),
-    inset 0 -1px 0 rgba(20, 13, 12, 0.18),
-    inset 0 0 0 1px rgba(40, 26, 21, 0.18);
-}
-
-.square[data-label] .piece,
-.square[data-label] .piece-label,
-.square[data-label] .piece-badge {
-  position: relative;
-}
-
-.square[data-label]::selection {
-  background: transparent;
-}
-
 .square::selection {
   background: transparent;
 }
 
-.square[data-label]:not(.valid-move):not(.capture-move):not(.move-dot):not(.capture-dot) .piece {
+.square:not(.valid-move):not(.capture-move):not(.move-dot):not(.capture-dot) .piece {
   filter: drop-shadow(0 8px 12px rgba(13, 10, 15, 0.24));
-}
-
-.square::after {
-  content: attr(data-label);
-  position: absolute;
-  bottom: 0.22rem;
-  right: 0.38rem;
-  font-size: clamp(0.56rem, 1vw, 0.78rem);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: rgba(59, 41, 29, 0.34);
-  text-shadow: 0 1px 0 rgba(255, 251, 243, 0.18);
-  z-index: 1;
-}
-
-.square.dark::after {
-  color: rgba(255, 240, 213, 0.34);
-  text-shadow: none;
 }
 
 .square.valid-move::before,
@@ -637,8 +589,8 @@ button {
 
 .piece-img,
 .piece-image {
-  width: 95%;
-  height: 95%;
+  width: 110%;
+  height: 110%;
   object-fit: contain;
   object-position: center center;
   display: block;
@@ -646,9 +598,12 @@ button {
   z-index: 1;
   pointer-events: none;
   user-select: none;
+  margin: 0;
+  padding: 0;
   image-rendering: auto;
   filter: drop-shadow(0 10px 14px rgba(10, 8, 14, 0.2));
   transform: scale(1.1);
+  transform-origin: center;
   transition: transform 250ms ease, filter 250ms ease;
 }
 
