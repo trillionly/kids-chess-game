@@ -36,8 +36,8 @@
   --start-card-padding-bottom: clamp(1.2rem, 2vw, 1.7rem);
   --start-side-width: 250px;
   --start-hero-gap: clamp(0.2rem, 0.8vw, 0.6rem);
-  --start-main-max-width: 540px;
-  --start-mode-width: 100%;
+  --start-main-max-width: 620px;
+  --start-mode-width: 140%;
   --start-button-height: 42px;
   --start-button-font-size: 1.08rem;
   --start-button-gap: 0.61rem;
@@ -255,6 +255,8 @@ button {
 }
 
 .start-character-bishop {
+  position: relative;
+  left: -10px;
   width: var(--start-bishop-size);
   height: var(--start-bishop-size);
 }
@@ -262,6 +264,19 @@ button {
 .start-character-knight {
   width: var(--start-knight-size);
   height: var(--start-knight-size);
+}
+
+.start-team-white .start-character-king {
+  top: 10px;
+}
+
+.start-team-black .start-character-king {
+  left: 40px;
+}
+
+.start-team-black .start-character-knight {
+  position: relative;
+  left: -70px;
 }
 
 .start-character.is-animated {
@@ -291,7 +306,7 @@ button {
   text-align: center;
   white-space: nowrap;
   position: relative;
-  left: -80px;
+  left: -95px;
   z-index: 1;
   line-height: 0.88;
 }
