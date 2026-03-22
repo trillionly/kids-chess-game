@@ -749,13 +749,14 @@ button {
 }
 
 .captured-strip-left {
-  left: -74px;
-  top: 2%;
+  left: -104px;
+  top: calc(2% + 150px);
+  direction: rtl;
   justify-items: end;
 }
 
 .captured-strip-right {
-  right: -74px;
+  right: -104px;
   bottom: 1%;
   align-content: end;
   justify-items: start;
@@ -1398,12 +1399,12 @@ button {
   }
 
   .captured-strip-left {
-    left: -34px;
-    top: 4%;
+    left: -64px;
+    top: calc(4% + 150px);
   }
 
   .captured-strip-right {
-    right: -34px;
+    right: -64px;
     bottom: 2%;
   }
 
