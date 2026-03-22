@@ -8,6 +8,7 @@ const modeDisplayElement = document.getElementById("mode-display");
 const levelDisplayElement = document.getElementById("level-display");
 const turnDisplayElement = document.getElementById("turn-display");
 const newGameButton = document.getElementById("new-game-button");
+const animationLayerElement = document.getElementById("animation-layer");
 
 const modeOptionButtons = Array.from(document.querySelectorAll("[data-mode-option]"));
 const levelOptionButtons = Array.from(document.querySelectorAll("[data-level-option]"));
@@ -247,6 +248,14 @@ function isInsideBoard(fileIndex, rankIndex) {
 
 function getPieceAtSquare(square) {
   return gameState.pieces.find((piece) => piece.square === square) || null;
+}
+
+function getSquareElement(square) {
+  return boardElement.querySelector(`.square[data-square="${square}"]`);
+}
+
+function getRenderedPieceElement(square) {
+  return boardElement.querySelector(`.piece[data-square="${square}"]`);
 }
 
 function createPieceMap() {
@@ -523,6 +532,68 @@ function performMove(fromSquare, toSquare) {
   clearSelection();
 }
 
+function buildAnimationClone(sourceElement, rect) {
+  const clone = sourceElement.cloneNode(true);
+  clone.classList.remove("selected", "is-arriving-piece");
+  clone.classList.add("animation-piece");
+  clone.style.left = `${rect.left}px`;
+  clone.style.top = `${rect.top}px`;
+  clone.style.width = `${rect.width}px`;
+  clone.style.height = `${rect.height}px`;
+  clone.style.margin = "0";
+  animationLayerElement.appendChild(clone);
+  return clone;
+}
+
+function animateMoveTransition(moveSnapshot) {
+  if (!moveSnapshot || !moveSnapshot.movingElement || !moveSnapshot.fromRect) {
+    return;
+  }
+
+  const destinationElement = getRenderedPieceElement(moveSnapshot.toSquare);
+  const destinationSquare = getSquareElement(moveSnapshot.toSquare);
+  const destinationRect = destinationElement?.getBoundingClientRect() || destinationSquare?.getBoundingClientRect();
+
+  if (!destinationRect) {
+    return;
+  }
+
+  const movingClone = buildAnimationClone(moveSnapshot.movingElement, moveSnapshot.fromRect);
+  const incomingPiece = destinationElement;
+
+  if (incomingPiece) {
+    incomingPiece.classList.add("is-arriving-piece");
+  }
+
+  let captureClone = null;
+  if (moveSnapshot.capturedElement && moveSnapshot.captureRect) {
+    captureClone = buildAnimationClone(moveSnapshot.capturedElement, moveSnapshot.captureRect);
+    captureClone.classList.add("capture-fade");
+  }
+
+  requestAnimationFrame(() => {
+    const deltaX = destinationRect.left - moveSnapshot.fromRect.left;
+    const deltaY = destinationRect.top - moveSnapshot.fromRect.top;
+
+    movingClone.style.transform = `translate(${deltaX}px, ${deltaY - 10}px) scale(1.02)`;
+    movingClone.classList.add("move-lift");
+
+    if (captureClone) {
+      captureClone.classList.add("is-capturing");
+    }
+  });
+
+  window.setTimeout(() => {
+    movingClone.remove();
+    if (captureClone) {
+      captureClone.remove();
+    }
+    if (incomingPiece) {
+      incomingPiece.classList.remove("is-arriving-piece");
+    }
+  }, 260);
+}
+
 function maybeRunComputerTurn() {
   if (!isSinglePlayerGame() || gameState.currentTurn !== "black") {
     return;
@@ -542,8 +613,18 @@ function maybeRunComputerTurn() {
       return;
     }
 
+    const moveSnapshot = {
+      fromSquare: computerMove.fromSquare,
+      toSquare: computerMove.toSquare,
+      movingElement: getRenderedPieceElement(computerMove.fromSquare),
+      fromRect: getRenderedPieceElement(computerMove.fromSquare)?.getBoundingClientRect(),
+      capturedElement: getRenderedPieceElement(computerMove.toSquare),
+      captureRect: getRenderedPieceElement(computerMove.toSquare)?.getBoundingClientRect(),
+    };
+
     performMove(computerMove.fromSquare, computerMove.toSquare);
     renderBoard();
+    animateMoveTransition(moveSnapshot);
   }, gameConfig.aiMoveDelayMs);
 }
 
@@ -556,8 +637,18 @@ function handleSquareClick(squareName) {
   const validMove = gameState.validMoves.find((move) => move.square === squareName);
 
   if (gameState.selectedPiece && validMove) {
+    const moveSnapshot = {
+      fromSquare: gameState.selectedPiece.square,
+      toSquare: squareName,
+      movingElement: getRenderedPieceElement(gameState.selectedPiece.square),
+      fromRect: getRenderedPieceElement(gameState.selectedPiece.square)?.getBoundingClientRect(),
+      capturedElement: getRenderedPieceElement(squareName),
+      captureRect: getRenderedPieceElement(squareName)?.getBoundingClientRect(),
+    };
+
     performMove(gameState.selectedPiece.square, squareName);
     renderBoard();
+    animateMoveTransition(moveSnapshot);
     maybeRunComputerTurn();
     return;
   }
@@ -639,7 +730,7 @@ function createPieceElement(piece) {
   if (visualState.useImage) {
     button.classList.add("image-piece");
     const image = document.createElement("img");
-    image.className = "piece-image";
+    image.className = "piece-img";
     image.src = visualState.assetPath;
     image.alt = "";
     image.decoding = "async";

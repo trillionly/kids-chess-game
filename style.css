@@ -252,7 +252,7 @@ button {
 .choice-button:hover,
 .small-button:hover,
 .piece:hover {
-  transform: translateY(-2px) scale(1.025);
+  transform: translateY(-2px) scale(1.05);
 }
 
 .choice-button:hover,
@@ -357,16 +357,24 @@ button {
   position: relative;
 }
 
+.board-stage {
+  perspective: 1000px;
+  perspective-origin: center top;
+}
+
 .board-frame {
   padding: clamp(0.85rem, 2vw, 1.1rem);
   border-radius: 34px;
   position: relative;
   overflow: hidden;
+  transform: rotateX(20deg);
+  transform-style: preserve-3d;
   background:
     linear-gradient(145deg, rgba(254, 231, 179, 0.16) 0%, rgba(92, 59, 42, 0.2) 22%, rgba(49, 33, 28, 0.94) 100%),
     linear-gradient(180deg, #6e4d37 0%, #35241b 100%);
   box-shadow:
     0 30px 80px rgba(6, 4, 8, 0.52),
+    0 0 30px rgba(255, 212, 134, 0.12),
     0 10px 24px rgba(255, 217, 150, 0.08),
     inset 0 1px 0 rgba(255, 236, 198, 0.24);
 }
@@ -397,6 +405,7 @@ button {
     radial-gradient(circle at center, rgba(255, 237, 201, 0.18) 0%, transparent 56%);
   box-shadow:
     inset 0 0 0 1px rgba(255, 230, 188, 0.14),
+    inset 0 1px 0 rgba(255, 247, 226, 0.22),
     inset 0 24px 40px rgba(255, 240, 212, 0.04),
     inset 0 -18px 28px rgba(12, 9, 13, 0.18);
 }
@@ -417,16 +426,16 @@ button {
 
 .square.light {
   background:
-    linear-gradient(180deg, rgba(255, 252, 244, 0.22) 0%, transparent 28%, transparent 72%, rgba(171, 142, 108, 0.12) 100%),
+    linear-gradient(180deg, rgba(255, 255, 247, 0.28) 0%, rgba(255, 243, 217, 0.08) 18%, transparent 55%, rgba(149, 118, 88, 0.16) 100%),
     radial-gradient(circle at 28% 24%, var(--light-square-glow) 0%, transparent 38%),
-    linear-gradient(180deg, rgba(255, 249, 234, 0.92) 0%, rgba(235, 221, 195, 0.96) 100%);
+    linear-gradient(180deg, #fbf3e5 0%, #e8d8b8 100%);
 }
 
 .square.dark {
   background:
-    linear-gradient(180deg, rgba(242, 163, 122, 0.1) 0%, transparent 28%, transparent 72%, rgba(18, 10, 10, 0.18) 100%),
+    linear-gradient(180deg, rgba(252, 174, 126, 0.16) 0%, rgba(172, 83, 50, 0.05) 18%, transparent 60%, rgba(12, 7, 7, 0.22) 100%),
     radial-gradient(circle at 24% 20%, var(--dark-square-glow) 0%, transparent 38%),
-    linear-gradient(180deg, rgba(117, 79, 69, 0.95) 0%, rgba(85, 57, 48, 0.98) 100%);
+    linear-gradient(180deg, #7a5a49 0%, #4f372f 100%);
 }
 
 .square::marker {
@@ -443,7 +452,10 @@ button {
 }
 
 .square[data-label] {
-  box-shadow: inset 0 0 0 1px rgba(40, 26, 21, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 247, 226, 0.1),
+    inset 0 -1px 0 rgba(20, 13, 12, 0.18),
+    inset 0 0 0 1px rgba(40, 26, 21, 0.18);
 }
 
 .square[data-label] .piece,
@@ -488,6 +500,7 @@ button {
   position: absolute;
   inset: 12%;
   border-radius: 20px;
+  z-index: 1;
 }
 
 .square.valid-move::before {
@@ -516,6 +529,7 @@ button {
   box-shadow:
     0 0 0 6px rgba(131, 218, 255, 0.14),
     0 0 22px rgba(107, 208, 255, 0.32);
+  z-index: 1;
 }
 
 .square.capture-dot::before {
@@ -527,6 +541,7 @@ button {
   box-shadow:
     inset 0 0 0 5px rgba(255, 166, 123, 0.85),
     0 0 20px rgba(255, 121, 88, 0.18);
+  z-index: 1;
 }
 
 .piece {
@@ -541,7 +556,7 @@ button {
   font-size: clamp(1rem, 2vw, 1.35rem);
   font-weight: 700;
   transition:
-    transform 140ms ease,
+    transform 250ms ease,
     box-shadow 140ms ease,
     outline 140ms ease,
     filter 140ms ease;
@@ -593,7 +608,15 @@ button {
     0 0 0 8px rgba(255, 217, 110, 0.16),
     0 0 26px var(--selected-glow),
     0 16px 22px rgba(10, 8, 14, 0.22);
-  transform: translateY(-2px) scale(1.04);
+  transform: translateY(-4px) scale(1.1);
+}
+
+.piece.black.selected {
+  outline-color: rgba(255, 118, 96, 0.88);
+  box-shadow:
+    0 0 0 8px rgba(255, 122, 96, 0.14),
+    0 0 28px rgba(255, 102, 82, 0.3),
+    0 16px 22px rgba(10, 8, 14, 0.22);
 }
 
 .piece.image-piece {
@@ -616,6 +639,7 @@ button {
   opacity: 0;
 }
 
+.piece-img,
 .piece-image {
   width: 100%;
   height: 100%;
@@ -629,14 +653,49 @@ button {
   image-rendering: auto;
   filter: drop-shadow(0 10px 14px rgba(10, 8, 14, 0.2));
   transform: translateY(1%);
+  transition: transform 250ms ease, filter 250ms ease;
 }
 
+.piece.image-piece:hover .piece-img,
 .piece.image-piece:hover .piece-image {
+  transform: translateY(1%) scale(1.05);
   filter: drop-shadow(0 14px 18px rgba(10, 8, 14, 0.24));
 }
 
+.piece.image-piece.selected .piece-img,
 .piece.image-piece.selected .piece-image {
+  transform: translateY(-2%) scale(1.1);
   filter: drop-shadow(0 16px 20px rgba(10, 8, 14, 0.28));
+}
+
+.piece.is-arriving-piece {
+  opacity: 0;
+}
+
+.animation-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.animation-piece {
+  position: fixed;
+  transform-origin: center center;
+  transition:
+    transform 250ms ease,
+    opacity 200ms ease,
+    filter 250ms ease;
+  will-change: transform, opacity;
+}
+
+.animation-piece.move-lift {
+  filter: drop-shadow(0 20px 22px rgba(10, 8, 14, 0.28));
+}
+
+.animation-piece.capture-fade.is-capturing {
+  transform: scale(0.45);
+  opacity: 0;
 }
 
 .piece-label {
