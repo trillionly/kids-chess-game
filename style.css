@@ -134,7 +134,7 @@ button {
   border-radius: 32px;
   text-align: center;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .start-card::before,
@@ -161,9 +161,9 @@ button {
 
 .start-hero {
   display: grid;
-  grid-template-columns: minmax(240px, 320px) minmax(max-content, 1fr) minmax(240px, 320px);
+  grid-template-columns: minmax(150px, 200px) minmax(max-content, 1fr) minmax(150px, 200px);
   align-items: end;
-  gap: 0.9rem;
+  gap: 0.65rem;
   position: relative;
   z-index: 1;
 }
@@ -172,8 +172,8 @@ button {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  gap: 0.2rem;
-  min-height: 320px;
+  gap: 0.12rem;
+  min-height: 180px;
 }
 
 .start-team-white {
@@ -186,8 +186,8 @@ button {
 
 .start-character {
   display: block;
-  width: 300px;
-  height: 300px;
+  width: 150px;
+  height: 150px;
   object-fit: contain;
   filter: drop-shadow(0 10px 14px rgba(10, 8, 14, 0.22));
   transform-origin: center bottom;
@@ -198,14 +198,14 @@ button {
 }
 
 .start-character-king {
-  width: 340px;
-  height: 340px;
+  width: 172px;
+  height: 172px;
 }
 
 .start-character-bishop,
 .start-character-knight {
-  width: 280px;
-  height: 280px;
+  width: 142px;
+  height: 142px;
 }
 
 .start-character.is-animated {
