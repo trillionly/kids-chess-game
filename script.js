@@ -18,6 +18,7 @@ const victoryTitleElement = document.getElementById("victory-title");
 const victoryMessageElement = document.getElementById("victory-message");
 const victoryLeftPieceElement = document.getElementById("victory-left-piece");
 const victoryRightPieceElement = document.getElementById("victory-right-piece");
+const startCharacterElements = Array.from(document.querySelectorAll(".start-character"));
 
 const modeOptionButtons = Array.from(document.querySelectorAll("[data-mode-option]"));
 const levelOptionButtons = Array.from(document.querySelectorAll("[data-level-option]"));
@@ -52,6 +53,7 @@ const gameConfig = {
     move: "assets/audio/move.mp3",
     capture: "assets/audio/capture.mp3",
     victory: "assets/audio/victory.mp3",
+    character: "assets/audio/character.mp3",
   },
 };
 
@@ -68,6 +70,10 @@ const soundState = {
   audioContext: null,
   warnedKinds: new Set(),
   unavailableAssets: new Set(),
+};
+
+const interactionState = {
+  characterTimers: new WeakMap(),
 };
 
 const gameState = {
@@ -347,6 +353,17 @@ function playFallbackToneSequence(config) {
 }
 
 function playFallbackSound(kind) {
+  if (kind === "character") {
+    playFallbackToneSequence({
+      notes: [
+        { frequency: 420, start: 0, duration: 0.08, volume: 0.04, wave: "triangle" },
+        { frequency: 560, start: 0.04, duration: 0.16, volume: 0.045, wave: "sine" },
+        { frequency: 480, start: 0.12, duration: 0.14, volume: 0.03, wave: "sine" },
+      ],
+    });
+    return;
+  }
+
   if (kind === "victory") {
     playFallbackToneSequence({
       notes: [
@@ -1181,10 +1198,34 @@ function renderBoard() {
   updateStatusText();
 }
 
+function triggerStartCharacterInteraction(element) {
+  playSoundEffect("character");
+  element.classList.remove("is-animated");
+  void element.offsetWidth;
+  element.classList.add("is-animated");
+
+  const existingTimer = interactionState.characterTimers.get(element);
+  if (existingTimer) {
+    window.clearTimeout(existingTimer);
+  }
+
+  const timerId = window.setTimeout(() => {
+    element.classList.remove("is-animated");
+    interactionState.characterTimers.delete(element);
+  }, 1000);
+
+  interactionState.characterTimers.set(element, timerId);
+}
+
 function attachSetupEvents() {
   const unlockAudio = () => unlockAudioContext();
   window.addEventListener("pointerdown", unlockAudio, { passive: true });
   window.addEventListener("keydown", unlockAudio);
+
+  for (const character of startCharacterElements) {
+    character.addEventListener("pointerenter", () => triggerStartCharacterInteraction(character));
+    character.addEventListener("pointerdown", () => triggerStartCharacterInteraction(character));
+  }
 
   for (const button of modeOptionButtons) {
     button.addEventListener("click", () => {

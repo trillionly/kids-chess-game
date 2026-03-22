@@ -191,6 +191,10 @@ button {
   object-fit: contain;
   filter: drop-shadow(0 10px 14px rgba(10, 8, 14, 0.22));
   transform-origin: center bottom;
+  transition:
+    transform 0.36s cubic-bezier(0.2, 0.85, 0.22, 1),
+    filter 0.36s ease;
+  will-change: transform, filter;
 }
 
 .start-character-king {
@@ -202,6 +206,13 @@ button {
 .start-character-knight {
   width: 280px;
   height: 280px;
+}
+
+.start-character.is-animated {
+  transform: scale(1.1) translateY(-10px);
+  filter:
+    drop-shadow(0 18px 24px rgba(10, 8, 14, 0.24))
+    drop-shadow(0 0 18px rgba(255, 232, 188, 0.14));
 }
 
 .start-card h1,
