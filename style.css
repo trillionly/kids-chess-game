@@ -37,10 +37,10 @@
   --start-side-width: 220px;
   --start-hero-gap: clamp(0.4rem, 1.3vw, 1rem);
   --start-main-max-width: 480px;
-  --start-mode-width: 72%;
-  --start-button-height: 38px;
+  --start-mode-width: 86.4%;
+  --start-button-height: 42px;
   --start-button-font-size: 1.08rem;
-  --start-button-gap: 0.55rem;
+  --start-button-gap: 0.61rem;
   --start-white-x: -8px;
   --start-white-y: 22px;
   --start-black-x: 8px;
