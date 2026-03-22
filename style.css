@@ -34,7 +34,7 @@
   --start-card-padding-x: clamp(1.4rem, 3vw, 2.2rem);
   --start-card-padding-top: clamp(0.42rem, 0.7vw, 0.6rem);
   --start-card-padding-bottom: calc(clamp(1.2rem, 2vw, 1.7rem) - 40px);
-  --start-card-offset-y: -25px;
+  --start-card-offset-y: -35px;
   --start-content-offset-y: -50px;
   --start-side-width: 250px;
   --start-hero-gap: clamp(0.2rem, 0.8vw, 0.6rem);
@@ -43,12 +43,14 @@
   --start-button-height: 42px;
   --start-button-font-size: 1.08rem;
   --start-button-gap: 0.61rem;
-  --start-white-x: -28px;
-  --start-white-y: 24px;
-  --start-black-x: 8px;
-  --start-black-y: 24px;
+  --start-white-x: -38px;
+  --start-white-y: 34px;
+  --start-black-x: -2px;
+  --start-black-y: 34px;
   --start-white-team-gap: 1cm;
   --start-black-team-gap: 1cm;
+  --start-mode-offset-y: 20px;
+  --start-help-offset-y: 10px;
   --start-character-size: 176px;
   --start-king-size: 221px;
   --start-bishop-size: 210px;
@@ -339,6 +341,11 @@ button {
   color: var(--text-soft);
 }
 
+.start-text {
+  position: relative;
+  top: var(--start-help-offset-y);
+}
+
 .selection-group {
   margin-top: 0.3rem;
   position: relative;
@@ -364,6 +371,7 @@ button {
   position: relative;
   left: 50%;
   transform: translateX(-50%);
+  top: var(--start-mode-offset-y);
 }
 
 .level-grid {
@@ -741,7 +749,8 @@ button {
   position: absolute;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.16rem;
+  column-gap: 0.16rem;
+  row-gap: 0.11rem;
   width: 144px;
   padding: 0;
   overflow: visible;
@@ -750,14 +759,14 @@ button {
 }
 
 .captured-strip-left {
-  left: -104px;
-  top: calc(2% + 150px);
+  left: -109px;
+  top: calc(2% + 180px);
   direction: rtl;
   justify-items: end;
 }
 
 .captured-strip-right {
-  right: -104px;
+  right: -119px;
   bottom: 1%;
   align-content: end;
   justify-items: start;
