@@ -37,7 +37,7 @@
   --start-side-width: 250px;
   --start-hero-gap: clamp(0.2rem, 0.8vw, 0.6rem);
   --start-main-max-width: 540px;
-  --start-mode-width: 86.4%;
+  --start-mode-width: 100%;
   --start-button-height: 42px;
   --start-button-font-size: 1.08rem;
   --start-button-gap: 0.61rem;
@@ -291,6 +291,7 @@ button {
   text-align: center;
   white-space: nowrap;
   position: relative;
+  left: -80px;
   z-index: 1;
   line-height: 0.88;
 }
