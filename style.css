@@ -186,12 +186,14 @@ button {
 }
 
 .start-team-white {
-  left: -1.1rem;
+  left: 0;
+  transform: translateX(calc(-100% + 2.2rem));
   justify-content: flex-end;
 }
 
 .start-team-black {
-  right: -1.85rem;
+  right: 0;
+  transform: translateX(calc(100% - 2.2rem));
   justify-content: flex-start;
 }
 
