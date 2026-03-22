@@ -646,19 +646,11 @@ button {
 }
 
 .board-frame.white-turn-glow::after {
-  left: -2%;
-  border-radius: 32px 0 0 32px;
-  background:
-    radial-gradient(circle at 10% 50%, rgba(255, 248, 234, 0.34) 0%, rgba(255, 248, 234, 0.16) 26%, transparent 72%);
-  opacity: 1;
+  opacity: 0;
 }
 
 .board-frame.black-turn-glow::after {
-  right: -2%;
-  border-radius: 0 32px 32px 0;
-  background:
-    radial-gradient(circle at 90% 50%, rgba(244, 248, 255, 0.28) 0%, rgba(244, 248, 255, 0.12) 26%, transparent 72%);
-  opacity: 1;
+  opacity: 0;
 }
 
 .chessboard {
