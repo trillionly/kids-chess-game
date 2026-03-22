@@ -508,11 +508,12 @@ button {
 .promotion-options {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.8rem;
+  gap: 0.56rem;
 }
 
 .promotion-button {
-  min-height: 232px;
+  min-height: 162px;
+  padding: 0.35rem;
   border: 1px solid rgba(255, 229, 179, 0.22);
   border-radius: 22px;
   background:
