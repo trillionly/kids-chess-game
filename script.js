@@ -1105,6 +1105,10 @@ function createPieceElement(piece) {
     button.classList.add("selected");
   }
 
+  if (!gameState.isGameOver && piece.color === gameState.currentTurn) {
+    button.classList.add("current-turn-piece");
+  }
+
   const visualState = getPieceVisualState(piece);
   button.dataset.asset = visualState.assetPath || "";
 
