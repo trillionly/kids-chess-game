@@ -262,14 +262,24 @@ function createPieceMap() {
   return new Map(gameState.pieces.map((piece) => [piece.square, piece]));
 }
 
+function createPieceMapFromPieces(pieces) {
+  return new Map(pieces.map((piece) => [piece.square, piece]));
+}
+
 function getPawnMoves(piece, pieceMap) {
   const moves = [];
   const { file, rank } = squareToPosition(piece.square);
   const direction = piece.color === "white" ? 1 : -1;
+  const startingRank = piece.color === "white" ? 1 : 6;
 
   const forwardSquare = positionToSquare(file, rank + direction);
   if (forwardSquare && !pieceMap.has(forwardSquare)) {
     moves.push({ square: forwardSquare, type: "move" });
+
+    const doubleForwardSquare = positionToSquare(file, rank + direction * 2);
+    if (rank === startingRank && doubleForwardSquare && !pieceMap.has(doubleForwardSquare)) {
+      moves.push({ square: doubleForwardSquare, type: "move" });
+    }
   }
 
   for (const fileOffset of [-1, 1]) {
@@ -347,8 +357,38 @@ function getKnightMoves(piece, pieceMap) {
   return moves;
 }
 
-function getValidMovesForPiece(piece) {
-  const pieceMap = createPieceMap();
+function getKingMoves(piece, pieceMap) {
+  const moves = [];
+  const start = squareToPosition(piece.square);
+
+  for (let fileOffset = -1; fileOffset <= 1; fileOffset += 1) {
+    for (let rankOffset = -1; rankOffset <= 1; rankOffset += 1) {
+      if (fileOffset === 0 && rankOffset === 0) {
+        continue;
+      }
+
+      const nextSquare = positionToSquare(start.file + fileOffset, start.rank + rankOffset);
+      if (!nextSquare) {
+        continue;
+      }
+
+      const targetPiece = pieceMap.get(nextSquare);
+      if (!targetPiece) {
+        moves.push({ square: nextSquare, type: "move" });
+        continue;
+      }
+
+      if (targetPiece.color !== piece.color) {
+        moves.push({ square: nextSquare, type: "capture" });
+      }
+    }
+  }
+
+  return moves;
+}
+
+function getValidMovesForPiece(piece, pieces = gameState.pieces) {
+  const pieceMap = createPieceMapFromPieces(pieces);
 
   switch (piece.type) {
     case "pawn":
@@ -362,6 +402,26 @@ function getValidMovesForPiece(piece) {
       ]);
     case "knight":
       return getKnightMoves(piece, pieceMap);
+    case "bishop":
+      return getSlidingMoves(piece, pieceMap, [
+        [1, 1],
+        [1, -1],
+        [-1, 1],
+        [-1, -1],
+      ]);
+    case "queen":
+      return getSlidingMoves(piece, pieceMap, [
+        [1, 0],
+        [-1, 0],
+        [0, 1],
+        [0, -1],
+        [1, 1],
+        [1, -1],
+        [-1, 1],
+        [-1, -1],
+      ]);
+    case "king":
+      return getKingMoves(piece, pieceMap);
     default:
       return [];
   }
@@ -393,15 +453,15 @@ function shouldShowMoveHighlights() {
   return gameState.mode === "two";
 }
 
-function getAllValidMoves(color) {
+function getAllValidMoves(color, pieces = gameState.pieces) {
   const moves = [];
 
-  for (const piece of gameState.pieces) {
+  for (const piece of pieces) {
     if (piece.color !== color) {
       continue;
     }
 
-    const validMoves = getValidMovesForPiece(piece);
+    const validMoves = getValidMovesForPiece(piece, pieces);
     for (const move of validMoves) {
       moves.push({
         piece,
@@ -445,11 +505,7 @@ function simulateMove(pieces, move) {
 }
 
 function countAttacksOnSquare(square, attackerColor, pieces) {
-  const originalPieces = gameState.pieces;
-  gameState.pieces = pieces;
-  const attackCount = getAllValidMoves(attackerColor).filter((move) => move.toSquare === square).length;
-  gameState.pieces = originalPieces;
-  return attackCount;
+  return getAllValidMoves(attackerColor, pieces).filter((move) => move.toSquare === square).length;
 }
 
 function scoreMove(move, level) {
