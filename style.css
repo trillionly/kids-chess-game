@@ -669,21 +669,22 @@ button {
   position: absolute;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.18rem;
-  width: 154px;
+  gap: 0.16rem;
+  width: 144px;
   padding: 0;
   overflow: visible;
   z-index: 5;
+  align-content: start;
 }
 
 .captured-strip-left {
-  left: -58px;
+  left: -26px;
   top: 10%;
   justify-items: end;
 }
 
 .captured-strip-right {
-  right: -58px;
+  right: -26px;
   bottom: 10%;
   justify-items: start;
 }
@@ -1264,8 +1265,8 @@ button {
 }
 
 .captured-piece {
-  width: 74px;
-  height: 74px;
+  width: 70px;
+  height: 70px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1321,16 +1322,16 @@ button {
   }
 
   .captured-strip {
-    width: 64px;
+    width: 108px;
   }
 
   .captured-strip-left {
-    left: -66px;
+    left: -22px;
     top: 8%;
   }
 
   .captured-strip-right {
-    right: -66px;
+    right: -22px;
     bottom: 8%;
   }
 
