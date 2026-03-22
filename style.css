@@ -760,16 +760,26 @@ button {
 
 .captured-strip-left {
   left: -109px;
-  top: calc(2% + 180px);
+  top: calc(2% + 220px);
   direction: rtl;
   justify-items: end;
 }
 
 .captured-strip-right {
-  right: -119px;
+  right: -129px;
   bottom: 1%;
   align-content: end;
   justify-items: start;
+}
+
+.captured-strip-left .captured-piece:nth-child(even) {
+  position: relative;
+  left: 10px;
+}
+
+.captured-strip-right .captured-piece:nth-child(even) {
+  position: relative;
+  left: -10px;
 }
 
 #turn-pill {
