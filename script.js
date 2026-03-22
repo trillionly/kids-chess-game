@@ -545,6 +545,21 @@ function buildAnimationClone(sourceElement, rect) {
   return clone;
 }
 
+function createImpactBurst(rect) {
+  if (!rect) {
+    return null;
+  }
+
+  const burst = document.createElement("div");
+  burst.className = "impact-burst";
+  burst.style.left = `${rect.left + rect.width / 2}px`;
+  burst.style.top = `${rect.top + rect.height / 2}px`;
+  burst.style.width = `${Math.max(rect.width * 0.52, 30)}px`;
+  burst.style.height = `${Math.max(rect.height * 0.52, 30)}px`;
+  animationLayerElement.appendChild(burst);
+  return burst;
+}
+
 function animateMoveTransition(moveSnapshot) {
   if (!moveSnapshot || !moveSnapshot.movingElement || !moveSnapshot.fromRect) {
     return;
@@ -566,20 +581,26 @@ function animateMoveTransition(moveSnapshot) {
   }
 
   let captureClone = null;
+  let impactBurst = null;
   if (moveSnapshot.capturedElement && moveSnapshot.captureRect) {
     captureClone = buildAnimationClone(moveSnapshot.capturedElement, moveSnapshot.captureRect);
     captureClone.classList.add("capture-fade");
+    impactBurst = createImpactBurst(destinationRect);
   }
 
   requestAnimationFrame(() => {
     const deltaX = destinationRect.left - moveSnapshot.fromRect.left;
     const deltaY = destinationRect.top - moveSnapshot.fromRect.top;
 
-    movingClone.style.transform = `translate(${deltaX}px, ${deltaY - 10}px) scale(1.02)`;
+    movingClone.style.transform = `translate(${deltaX}px, ${deltaY - 12}px) scale(1.08)`;
     movingClone.classList.add("move-lift");
 
     if (captureClone) {
       captureClone.classList.add("is-capturing");
+    }
+
+    if (impactBurst) {
+      impactBurst.classList.add("is-active");
     }
   });
 
@@ -588,10 +609,13 @@ function animateMoveTransition(moveSnapshot) {
     if (captureClone) {
       captureClone.remove();
     }
+    if (impactBurst) {
+      impactBurst.remove();
+    }
     if (incomingPiece) {
       incomingPiece.classList.remove("is-arriving-piece");
     }
-  }, 260);
+  }, 280);
 }
 
 function maybeRunComputerTurn() {
