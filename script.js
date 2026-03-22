@@ -18,6 +18,9 @@ const victoryTitleElement = document.getElementById("victory-title");
 const victoryMessageElement = document.getElementById("victory-message");
 const victoryLeftPieceElement = document.getElementById("victory-left-piece");
 const victoryRightPieceElement = document.getElementById("victory-right-piece");
+const promotionOverlayElement = document.getElementById("promotion-overlay");
+const promotionTitleElement = document.getElementById("promotion-title");
+const promotionOptionsElement = document.getElementById("promotion-options");
 const startCharacterElements = Array.from(document.querySelectorAll(".start-character"));
 
 const modeOptionButtons = Array.from(document.querySelectorAll("[data-mode-option]"));
@@ -26,6 +29,7 @@ const levelOptionButtons = Array.from(document.querySelectorAll("[data-level-opt
 const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const backRank = ["rook", "knight", "bishop", "queen", "king", "bishop", "knight", "rook"];
 const pieceTypes = ["pawn", "rook", "knight", "bishop", "queen", "king"];
+const promotionTypes = ["queen", "rook", "bishop", "knight"];
 
 const pieceSymbols = {
   white: {
@@ -90,6 +94,7 @@ const gameState = {
   },
   winner: null,
   isGameOver: false,
+  pendingPromotion: null,
   isComputerThinking: false,
   aiTimerId: null,
 };
@@ -152,6 +157,7 @@ function resetBoardState() {
   };
   gameState.winner = null;
   gameState.isGameOver = false;
+  gameState.pendingPromotion = null;
   gameState.isComputerThinking = false;
 }
 
@@ -179,6 +185,7 @@ function showStartScreen() {
   gameState.isComputerThinking = false;
   gameState.winner = null;
   gameState.isGameOver = false;
+  gameState.pendingPromotion = null;
   startScreenElement.classList.remove("is-hidden");
   gameScreenElement.classList.add("is-hidden");
   updateSetupControls();
@@ -756,6 +763,97 @@ function performMove(fromSquare, toSquare) {
   };
 }
 
+function isPromotionSquare(piece) {
+  if (!piece || piece.type !== "pawn") {
+    return false;
+  }
+
+  const { rank } = squareToPosition(piece.square);
+  return (piece.color === "white" && rank === 7) || (piece.color === "black" && rank === 0);
+}
+
+function applyPromotion(piece, nextType) {
+  if (!piece || !promotionTypes.includes(nextType)) {
+    return;
+  }
+
+  piece.type = nextType;
+  piece.imageKey = `${piece.color}-${nextType}`;
+  piece.assetPath = null;
+}
+
+function createPromotionOptionButton(color, type) {
+  const piece = createPieceData(color, type, `${color}-${type}-promotion`);
+  const visualState = getPieceVisualState(piece);
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "promotion-button";
+  button.dataset.type = type;
+
+  const pieceElement = document.createElement("div");
+  pieceElement.className = "promotion-piece";
+
+  if (visualState.useImage) {
+    const image = document.createElement("img");
+    image.src = visualState.assetPath;
+    image.alt = "";
+    image.decoding = "async";
+    image.loading = "eager";
+    image.draggable = false;
+    pieceElement.appendChild(image);
+  } else {
+    pieceElement.classList.add("placeholder-piece", `${color}-${type}`);
+    pieceElement.textContent = pieceSymbols[color][type];
+  }
+
+  const label = document.createElement("span");
+  label.className = "promotion-label";
+  label.textContent = type[0].toUpperCase() + type.slice(1);
+
+  button.appendChild(pieceElement);
+  button.appendChild(label);
+  return button;
+}
+
+function openPromotionChooser(piece) {
+  gameState.pendingPromotion = piece;
+  promotionTitleElement.textContent = `${piece.color === "white" ? "White" : "Black"} Pawn Promotion`;
+  promotionOptionsElement.innerHTML = "";
+
+  for (const type of promotionTypes) {
+    const button = createPromotionOptionButton(piece.color, type);
+    button.addEventListener("click", () => {
+      applyPromotion(piece, type);
+      gameState.pendingPromotion = null;
+      renderBoard();
+      if (isSinglePlayerGame() && gameState.currentTurn === "black") {
+        maybeRunComputerTurn();
+      }
+    });
+    promotionOptionsElement.appendChild(button);
+  }
+
+  promotionOverlayElement.classList.remove("is-hidden");
+}
+
+function maybeHandlePromotionAfterMove(moveResult) {
+  if (!moveResult?.movingPiece || !isPromotionSquare(moveResult.movingPiece)) {
+    return false;
+  }
+
+  const movingPiece = moveResult.movingPiece;
+  const needsPlayerChoice = !isSinglePlayerGame() || movingPiece.color === "white";
+
+  if (needsPlayerChoice) {
+    openPromotionChooser(movingPiece);
+    return true;
+  }
+
+  const randomType = promotionTypes[Math.floor(Math.random() * promotionTypes.length)];
+  applyPromotion(movingPiece, randomType);
+  return false;
+}
+
 function createCelebrationPiece(color, type) {
   const piece = createPieceData(color, type, `${color}-${type}-victory`);
   const visualState = getPieceVisualState(piece);
@@ -913,7 +1011,7 @@ function animateMoveTransition(moveSnapshot) {
 }
 
 function maybeRunComputerTurn() {
-  if (!isSinglePlayerGame() || gameState.currentTurn !== "black" || gameState.isGameOver) {
+  if (!isSinglePlayerGame() || gameState.currentTurn !== "black" || gameState.isGameOver || gameState.pendingPromotion) {
     return;
   }
 
@@ -941,6 +1039,7 @@ function maybeRunComputerTurn() {
     };
 
     const moveResult = performMove(computerMove.fromSquare, computerMove.toSquare);
+    maybeHandlePromotionAfterMove(moveResult);
     renderBoard();
     animateMoveTransition(moveSnapshot);
     if (moveResult?.capturedPiece?.type === "king") {
@@ -953,7 +1052,7 @@ function maybeRunComputerTurn() {
 }
 
 function handleSquareClick(squareName) {
-  if (gameState.screen !== "game" || gameState.isComputerThinking || gameState.isGameOver || !isHumanTurn()) {
+  if (gameState.screen !== "game" || gameState.isComputerThinking || gameState.isGameOver || gameState.pendingPromotion || !isHumanTurn()) {
     return;
   }
 
@@ -971,6 +1070,7 @@ function handleSquareClick(squareName) {
     };
 
     const moveResult = performMove(gameState.selectedPiece.square, squareName);
+    const promotionHandled = maybeHandlePromotionAfterMove(moveResult);
     renderBoard();
     animateMoveTransition(moveSnapshot);
     if (moveResult?.capturedPiece?.type === "king") {
@@ -979,6 +1079,9 @@ function handleSquareClick(squareName) {
       return;
     }
     playSoundEffect(moveResult?.capturedPiece ? "capture" : "move");
+    if (promotionHandled) {
+      return;
+    }
     maybeRunComputerTurn();
     return;
   }
@@ -1036,6 +1139,7 @@ function updateHud() {
   boardFrameElement.classList.toggle("white-turn-glow", gameState.currentTurn === "white");
   boardFrameElement.classList.toggle("black-turn-glow", gameState.currentTurn === "black");
   victoryOverlayElement.classList.toggle("is-hidden", !gameState.isGameOver);
+  promotionOverlayElement.classList.toggle("is-hidden", !gameState.pendingPromotion);
 }
 
 function createCapturedPieceElement(piece) {
