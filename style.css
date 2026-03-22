@@ -365,8 +365,10 @@ button {
 
 .board-area {
   width: min(95vw, 980px);
+  max-width: 980px;
   position: relative;
   overflow: visible;
+  margin: 0 auto;
 }
 
 .captured-strip {
@@ -432,11 +434,13 @@ button {
 }
 
 .board-stage {
+  width: 100%;
   perspective: none;
   overflow: visible;
 }
 
 .board-frame {
+  width: 100%;
   padding: clamp(1rem, 2vw, 1.35rem);
   border-radius: 38px;
   position: relative;
@@ -509,10 +513,11 @@ button {
 
 .chessboard {
   width: 100%;
+  max-width: 100%;
   aspect-ratio: 1 / 1;
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  grid-template-rows: repeat(8, 1fr);
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-rows: repeat(8, minmax(0, 1fr));
   overflow: visible;
   border-radius: 24px;
   position: relative;
@@ -530,6 +535,8 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 0;
+  min-height: 0;
   cursor: pointer;
   overflow: visible;
 }
