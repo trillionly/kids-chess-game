@@ -130,7 +130,7 @@ button {
 .start-card {
   width: min(100%, 1180px);
   margin: 0 auto;
-  padding: clamp(0.65rem, 1.6vw, 1.15rem) clamp(1.5rem, 3vw, 2.3rem) clamp(1.55rem, 2.6vw, 2.2rem);
+  padding: clamp(0.15rem, 0.7vw, 0.45rem) clamp(1.5rem, 3vw, 2.3rem) clamp(1.55rem, 2.6vw, 2.2rem);
   border-radius: 32px;
   text-align: center;
   position: relative;
@@ -173,8 +173,8 @@ button {
   align-items: flex-end;
   justify-content: center;
   gap: 0.04rem;
-  min-height: 112px;
-  margin-bottom: -1.15rem;
+  min-height: 72px;
+  margin-bottom: -1.75rem;
 }
 
 .start-team-white {
@@ -939,6 +939,14 @@ button {
   inset: 8%;
   height: auto;
   border-radius: 24%;
+}
+
+.piece.image-piece.selected {
+  box-shadow: none;
+}
+
+.piece.image-piece.selected::before {
+  opacity: 0;
 }
 
 .piece.image-piece .piece-label,
