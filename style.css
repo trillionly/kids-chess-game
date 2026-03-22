@@ -358,38 +358,41 @@ button {
 }
 
 .board-stage {
-  perspective: 1000px;
-  perspective-origin: center top;
+  perspective: none;
 }
 
 .board-frame {
-  padding: clamp(0.85rem, 2vw, 1.1rem);
-  border-radius: 34px;
+  padding: clamp(1rem, 2vw, 1.35rem);
+  border-radius: 38px;
   position: relative;
   overflow: hidden;
-  transform: rotateX(20deg);
-  transform-style: preserve-3d;
   background:
-    linear-gradient(145deg, rgba(254, 231, 179, 0.16) 0%, rgba(92, 59, 42, 0.2) 22%, rgba(49, 33, 28, 0.94) 100%),
-    linear-gradient(180deg, #6e4d37 0%, #35241b 100%);
+    linear-gradient(145deg, rgba(255, 242, 210, 0.28) 0%, rgba(163, 113, 77, 0.18) 16%, rgba(57, 37, 28, 0.92) 100%),
+    linear-gradient(180deg, #7a553d 0%, #3a271e 100%);
+  border: 4px solid rgba(255, 221, 164, 0.3);
   box-shadow:
-    0 30px 80px rgba(6, 4, 8, 0.52),
-    0 0 30px rgba(255, 212, 134, 0.12),
-    0 10px 24px rgba(255, 217, 150, 0.08),
-    inset 0 1px 0 rgba(255, 236, 198, 0.24);
+    0 18px 36px rgba(15, 10, 13, 0.34),
+    0 0 28px rgba(255, 212, 134, 0.16),
+    0 4px 14px rgba(255, 229, 187, 0.08),
+    inset 0 1px 0 rgba(255, 243, 217, 0.28),
+    inset 0 0 0 1px rgba(82, 53, 39, 0.34);
 }
 
 .board-frame::before {
-  inset: 10px;
-  border-radius: 26px;
-  border: 1px solid rgba(255, 224, 164, 0.16);
+  inset: 8px;
+  border-radius: 28px;
+  border: 2px solid rgba(255, 230, 188, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 220, 0.24),
+    inset 0 -1px 0 rgba(28, 18, 14, 0.3);
 }
 
 .board-frame::after {
-  inset: auto 12% 2%;
-  height: 20px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(14, 10, 15, 0.42) 0%, transparent 72%);
+  inset: auto 7% 10px;
+  height: 24px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 220, 156, 0.16) 0%, rgba(255, 220, 156, 0.04) 45%, transparent 78%);
+  filter: blur(3px);
 }
 
 .chessboard {
@@ -402,11 +405,11 @@ button {
   border-radius: 24px;
   position: relative;
   background:
-    radial-gradient(circle at center, rgba(255, 237, 201, 0.18) 0%, transparent 56%);
+    radial-gradient(circle at center, rgba(255, 237, 201, 0.2) 0%, transparent 58%);
   box-shadow:
-    inset 0 0 0 1px rgba(255, 230, 188, 0.14),
+    inset 0 0 0 1px rgba(255, 235, 198, 0.16),
     inset 0 1px 0 rgba(255, 247, 226, 0.22),
-    inset 0 24px 40px rgba(255, 240, 212, 0.04),
+    inset 0 24px 40px rgba(255, 240, 212, 0.05),
     inset 0 -18px 28px rgba(12, 9, 13, 0.18);
 }
 
@@ -426,16 +429,28 @@ button {
 
 .square.light {
   background:
-    linear-gradient(180deg, rgba(255, 255, 247, 0.28) 0%, rgba(255, 243, 217, 0.08) 18%, transparent 55%, rgba(149, 118, 88, 0.16) 100%),
-    radial-gradient(circle at 28% 24%, var(--light-square-glow) 0%, transparent 38%),
-    linear-gradient(180deg, #fbf3e5 0%, #e8d8b8 100%);
+    linear-gradient(180deg, rgba(255, 254, 246, 0.34) 0%, rgba(255, 245, 222, 0.12) 18%, transparent 56%, rgba(140, 110, 80, 0.16) 100%),
+    radial-gradient(circle at 28% 24%, rgba(255, 250, 234, 0.6) 0%, transparent 40%),
+    linear-gradient(135deg, rgba(255, 246, 227, 0.12) 0%, transparent 42%, rgba(170, 132, 88, 0.08) 100%),
+    linear-gradient(180deg, #f8efde 0%, #e4d0ae 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 250, 239, 0.42),
+    inset 0 -4px 8px rgba(115, 82, 52, 0.14),
+    inset 4px 0 8px rgba(255, 248, 236, 0.1),
+    inset -4px 0 8px rgba(112, 84, 61, 0.08);
 }
 
 .square.dark {
   background:
-    linear-gradient(180deg, rgba(252, 174, 126, 0.16) 0%, rgba(172, 83, 50, 0.05) 18%, transparent 60%, rgba(12, 7, 7, 0.22) 100%),
-    radial-gradient(circle at 24% 20%, var(--dark-square-glow) 0%, transparent 38%),
-    linear-gradient(180deg, #7a5a49 0%, #4f372f 100%);
+    linear-gradient(180deg, rgba(255, 184, 130, 0.18) 0%, rgba(176, 91, 57, 0.06) 18%, transparent 60%, rgba(12, 7, 7, 0.24) 100%),
+    radial-gradient(circle at 24% 20%, rgba(176, 101, 67, 0.28) 0%, transparent 38%),
+    linear-gradient(135deg, rgba(255, 216, 176, 0.06) 0%, transparent 42%, rgba(36, 22, 18, 0.14) 100%),
+    linear-gradient(180deg, #7a5a46 0%, #52372d 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 223, 190, 0.16),
+    inset 0 -4px 9px rgba(18, 10, 8, 0.28),
+    inset 4px 0 8px rgba(255, 210, 170, 0.05),
+    inset -4px 0 8px rgba(20, 12, 10, 0.12);
 }
 
 .square::selection {
