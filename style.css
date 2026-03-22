@@ -45,7 +45,8 @@
   --start-white-y: 22px;
   --start-black-x: 8px;
   --start-black-y: 22px;
-  --start-team-gap: -1.24rem;
+  --start-white-team-gap: 1cm;
+  --start-black-team-gap: 1cm;
   --start-character-size: 176px;
   --start-king-size: 221px;
   --start-bishop-size: 210px;
@@ -211,7 +212,15 @@ button {
 
 .start-team-white .start-character + .start-character,
 .start-team-black .start-character + .start-character {
-  margin-left: var(--start-team-gap);
+  margin-left: 0;
+}
+
+.start-team-white .start-character + .start-character {
+  margin-left: var(--start-white-team-gap);
+}
+
+.start-team-black .start-character + .start-character {
+  margin-left: var(--start-black-team-gap);
 }
 
 .start-main {
