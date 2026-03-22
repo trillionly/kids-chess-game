@@ -30,6 +30,26 @@
   --gold-line: rgba(255, 223, 151, 0.46);
   --shadow-soft: 0 16px 40px rgba(7, 5, 12, 0.34);
   --shadow-strong: 0 28px 80px rgba(3, 2, 8, 0.54);
+  --start-card-max-width: 980px;
+  --start-card-padding-x: clamp(1.4rem, 3vw, 2.2rem);
+  --start-card-padding-top: clamp(0.65rem, 1.1vw, 0.95rem);
+  --start-card-padding-bottom: clamp(1.45rem, 2.3vw, 2rem);
+  --start-side-width: 220px;
+  --start-hero-gap: clamp(0.4rem, 1.3vw, 1rem);
+  --start-main-max-width: 480px;
+  --start-mode-width: 72%;
+  --start-button-height: 38px;
+  --start-button-font-size: 1.08rem;
+  --start-button-gap: 0.55rem;
+  --start-white-x: -8px;
+  --start-white-y: 22px;
+  --start-black-x: 8px;
+  --start-black-y: 22px;
+  --start-team-gap: -0.95rem;
+  --start-character-size: 176px;
+  --start-king-size: 221px;
+  --start-bishop-size: 210px;
+  --start-knight-size: 225px;
 }
 
 * {
@@ -128,11 +148,10 @@ button {
 }
 
 .start-card {
-  width: min(100%, 944px);
+  width: min(100%, var(--start-card-max-width));
   margin: 0 auto;
-  padding: clamp(0.38rem, 0.9vw, 0.6rem) clamp(1.45rem, 3vw, 2.2rem) clamp(1.4rem, 2.3vw, 2rem);
+  padding: var(--start-card-padding-top) var(--start-card-padding-x) var(--start-card-padding-bottom);
   border-radius: 32px;
-  text-align: center;
   position: relative;
   overflow: visible;
 }
@@ -160,52 +179,53 @@ button {
 }
 
 .start-hero {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  width: fit-content;
+  display: grid;
+  grid-template-columns: minmax(0, var(--start-side-width)) minmax(0, 1fr) minmax(0, var(--start-side-width));
+  align-items: end;
+  gap: var(--start-hero-gap);
+  width: 100%;
   max-width: 100%;
-  min-height: 0;
-  margin-left: auto;
-  margin-right: auto;
-  position: relative;
   z-index: 1;
-  margin-top: -0.35rem;
+  position: relative;
 }
 
 .start-team {
-  position: absolute;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   gap: 0;
-  bottom: -2.05rem;
-  min-height: 0;
-  margin-bottom: 0;
   z-index: 0;
 }
 
 .start-team-white {
-  left: 0;
-  transform: translateX(calc(-100% + 2.2rem));
+  justify-self: end;
   justify-content: flex-end;
+  transform: translate(var(--start-white-x), var(--start-white-y));
 }
 
 .start-team-black {
-  right: 0;
-  transform: translateX(calc(100% - 2.2rem));
+  justify-self: start;
   justify-content: flex-start;
+  transform: translate(var(--start-black-x), var(--start-black-y));
 }
 
 .start-team-white .start-character + .start-character,
 .start-team-black .start-character + .start-character {
-  margin-left: -0.95rem;
+  margin-left: var(--start-team-gap);
+}
+
+.start-main {
+  width: min(100%, var(--start-main-max-width));
+  margin: 0 auto;
+  text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .start-character {
   display: block;
-  width: 176px;
-  height: 176px;
+  width: var(--start-character-size);
+  height: var(--start-character-size);
   object-fit: contain;
   filter: drop-shadow(0 10px 14px rgba(10, 8, 14, 0.22));
   transform-origin: center bottom;
@@ -216,24 +236,18 @@ button {
 }
 
 .start-character-king {
-  width: 221px;
-  height: 221px;
-}
-
-.start-character-bishop,
-.start-character-knight {
-  width: 185px;
-  height: 185px;
+  width: var(--start-king-size);
+  height: var(--start-king-size);
 }
 
 .start-character-bishop {
-  width: 210px;
-  height: 210px;
+  width: var(--start-bishop-size);
+  height: var(--start-bishop-size);
 }
 
 .start-character-knight {
-  width: 225px;
-  height: 225px;
+  width: var(--start-knight-size);
+  height: var(--start-knight-size);
 }
 
 .start-character.is-animated {
@@ -301,12 +315,12 @@ button {
 .button-row,
 .level-grid {
   display: grid;
-  gap: 0.55rem;
+  gap: var(--start-button-gap);
 }
 
 .button-row {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  width: 70%;
+  width: var(--start-mode-width);
   margin: 0 auto;
 }
 
@@ -328,9 +342,10 @@ button {
 }
 
 .choice-button {
-  min-height: 30px;
-  padding: 0.14rem 0.56rem;
-  font-size: 1.08rem;
+  min-height: var(--start-button-height);
+  height: var(--start-button-height);
+  padding: 0 0.56rem;
+  font-size: var(--start-button-font-size);
   font-weight: 800;
   color: #fff6e3;
   background:
@@ -339,8 +354,6 @@ button {
   box-shadow:
     inset 0 1px 0 rgba(255, 236, 195, 0.16),
     0 12px 22px rgba(7, 5, 11, 0.22);
-  font-size: 0.9rem;
-  font-weight: 700;
   text-shadow: 0 1px 0 rgba(15, 10, 5, 0.45);
 }
 
@@ -1356,24 +1369,25 @@ button {
 
   .start-hero {
     grid-template-columns: 1fr;
-    gap: 0.35rem;
+    gap: 0.4rem;
   }
 
   .start-team {
-    min-height: unset;
     justify-content: center;
+    transform: none;
   }
 
   .start-team-white {
-    order: 2;
+    justify-self: center;
   }
 
   .start-team-black {
-    order: 3;
+    justify-self: center;
   }
 
-  .start-card h1 {
-    order: 1;
+  .start-main {
+    width: 100%;
+    order: 2;
   }
 
   .start-character {
@@ -1388,6 +1402,7 @@ button {
 
   .button-row {
     grid-template-columns: 1fr;
+    width: min(100%, 280px);
   }
 
   .level-grid {
