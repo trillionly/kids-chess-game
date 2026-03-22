@@ -740,8 +740,7 @@ button {
 }
 
 .square.capture-move::before {
-  background:
-    radial-gradient(circle at center, rgba(255, 170, 118, 0.22) 0%, rgba(255, 108, 82, 0.16) 56%, transparent 82%);
+  background: transparent;
   box-shadow:
     inset 0 0 0 3px rgba(255, 166, 120, 0.68),
     0 0 20px rgba(255, 106, 77, 0.22);
