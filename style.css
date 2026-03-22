@@ -525,8 +525,8 @@ button {
 }
 
 .promotion-button {
-  min-height: 162px;
-  padding: 0.35rem;
+  min-height: 130px;
+  padding: 0.22rem;
   border: 1px solid rgba(255, 229, 179, 0.22);
   border-radius: 22px;
   background:
@@ -554,8 +554,8 @@ button {
 }
 
 .promotion-piece {
-  width: 172px;
-  height: 172px;
+  width: 206px;
+  height: 206px;
   display: flex;
   align-items: center;
   justify-content: center;
