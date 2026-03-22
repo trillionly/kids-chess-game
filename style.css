@@ -128,7 +128,7 @@ button {
 }
 
 .start-card {
-  width: min(100%, 1180px);
+  width: min(100%, 944px);
   margin: 0 auto;
   padding: 0 clamp(1.45rem, 3vw, 2.2rem) clamp(1.4rem, 2.3vw, 2rem);
   border-radius: 32px;
@@ -299,6 +299,8 @@ button {
 
 .button-row {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 70%;
+  margin: 0 auto;
 }
 
 .level-grid {
@@ -321,6 +323,8 @@ button {
 .choice-button {
   min-height: 30px;
   padding: 0.14rem 0.56rem;
+  font-size: 1.08rem;
+  font-weight: 800;
   color: #fff6e3;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 213, 131, 0.04) 100%),
