@@ -913,20 +913,17 @@ button {
 
 .piece.selected {
   outline: 0;
-  box-shadow:
-    0 0 0 10px rgba(255, 217, 110, 0.12),
-    0 0 28px var(--selected-glow);
+  box-shadow: none;
+  background: transparent;
   transform: scale(1.2);
 }
 
 .piece.black.selected {
-  box-shadow:
-    0 0 0 10px rgba(255, 122, 96, 0.12),
-    0 0 30px rgba(255, 102, 82, 0.34);
+  box-shadow: none;
 }
 
 .piece.selected::before {
-  opacity: 1;
+  opacity: 0;
 }
 
 .piece.image-piece {
