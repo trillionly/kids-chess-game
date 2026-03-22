@@ -10,6 +10,8 @@ const turnDisplayElement = document.getElementById("turn-display");
 const turnPillElement = document.getElementById("turn-pill");
 const newGameButton = document.getElementById("new-game-button");
 const animationLayerElement = document.getElementById("animation-layer");
+const capturedWhiteElement = document.getElementById("captured-white");
+const capturedBlackElement = document.getElementById("captured-black");
 
 const modeOptionButtons = Array.from(document.querySelectorAll("[data-mode-option]"));
 const levelOptionButtons = Array.from(document.querySelectorAll("[data-level-option]"));
@@ -40,6 +42,10 @@ const pieceSymbols = {
 const gameConfig = {
   pieceAssetExtensions: ["png"],
   aiMoveDelayMs: 500,
+  soundAssets: {
+    move: "assets/audio/move.mp3",
+    capture: "assets/audio/capture.mp3",
+  },
 };
 
 const pieceAssetCatalog = createPieceAssetCatalog();
@@ -51,6 +57,12 @@ const setupState = {
   level: null,
 };
 
+const soundState = {
+  audioContext: null,
+  warnedKinds: new Set(),
+  unavailableAssets: new Set(),
+};
+
 const gameState = {
   screen: "start",
   mode: null,
@@ -59,6 +71,10 @@ const gameState = {
   selectedPiece: null,
   validMoves: [],
   pieces: createStartingPieces(),
+  capturedPieces: {
+    white: [],
+    black: [],
+  },
   isComputerThinking: false,
   aiTimerId: null,
 };
@@ -115,6 +131,10 @@ function resetBoardState() {
   gameState.selectedPiece = null;
   gameState.validMoves = [];
   gameState.pieces = createStartingPieces();
+  gameState.capturedPieces = {
+    white: [],
+    black: [],
+  };
   gameState.isComputerThinking = false;
 }
 
@@ -265,6 +285,102 @@ function createPieceMap() {
 
 function createPieceMapFromPieces(pieces) {
   return new Map(pieces.map((piece) => [piece.square, piece]));
+}
+
+function getAudioContext() {
+  if (soundState.audioContext) {
+    return soundState.audioContext;
+  }
+
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) {
+    return null;
+  }
+
+  soundState.audioContext = new AudioContextClass();
+  return soundState.audioContext;
+}
+
+function unlockAudioContext() {
+  const audioContext = getAudioContext();
+  if (audioContext && audioContext.state === "suspended") {
+    audioContext.resume().catch(() => {});
+  }
+}
+
+function playFallbackToneSequence(config) {
+  const audioContext = getAudioContext();
+  if (!audioContext) {
+    return;
+  }
+
+  const now = audioContext.currentTime + 0.01;
+
+  for (const note of config.notes) {
+    const oscillator = audioContext.createOscillator();
+    const noteGain = audioContext.createGain();
+
+    oscillator.type = note.wave || "sine";
+    oscillator.frequency.setValueAtTime(note.frequency, now + note.start);
+    noteGain.gain.setValueAtTime(0.0001, now + note.start);
+    noteGain.gain.exponentialRampToValueAtTime(note.volume, now + note.start + 0.012);
+    noteGain.gain.exponentialRampToValueAtTime(0.0001, now + note.start + note.duration);
+
+    oscillator.connect(noteGain);
+    noteGain.connect(audioContext.destination);
+    oscillator.start(now + note.start);
+    oscillator.stop(now + note.start + note.duration + 0.03);
+  }
+}
+
+function playFallbackSound(kind) {
+  if (kind === "capture") {
+    playFallbackToneSequence({
+      notes: [
+        { frequency: 740, start: 0, duration: 0.14, volume: 0.055, wave: "triangle" },
+        { frequency: 988, start: 0.045, duration: 0.18, volume: 0.045, wave: "sine" },
+      ],
+    });
+    return;
+  }
+
+  playFallbackToneSequence({
+    notes: [
+      { frequency: 240, start: 0, duration: 0.12, volume: 0.07, wave: "triangle" },
+      { frequency: 182, start: 0.035, duration: 0.16, volume: 0.05, wave: "sine" },
+    ],
+  });
+}
+
+function playSoundEffect(kind) {
+  unlockAudioContext();
+
+  const assetPath = gameConfig.soundAssets[kind];
+  if (!assetPath || soundState.unavailableAssets.has(kind)) {
+    playFallbackSound(kind);
+    return;
+  }
+
+  const audio = new Audio(assetPath);
+  audio.preload = "auto";
+  audio.volume = kind === "capture" ? 0.72 : 0.62;
+  let hasHandledFailure = false;
+
+  const markMissing = () => {
+    if (hasHandledFailure) {
+      return;
+    }
+    hasHandledFailure = true;
+    soundState.unavailableAssets.add(kind);
+    if (!soundState.warnedKinds.has(kind)) {
+      console.warn(`Missing sound asset: ${assetPath}`);
+      soundState.warnedKinds.add(kind);
+    }
+    playFallbackSound(kind);
+  };
+
+  audio.addEventListener("error", markMissing, { once: true });
+  audio.play().catch(markMissing);
 }
 
 function getPawnMoves(piece, pieceMap) {
@@ -580,13 +696,22 @@ function chooseComputerMove() {
 function performMove(fromSquare, toSquare) {
   const movingPiece = getPieceAtSquare(fromSquare);
   if (!movingPiece) {
-    return;
+    return null;
+  }
+
+  const capturedPiece = getPieceAtSquare(toSquare);
+  if (capturedPiece && capturedPiece !== movingPiece) {
+    gameState.capturedPieces[capturedPiece.color].push({ ...capturedPiece });
   }
 
   gameState.pieces = gameState.pieces.filter((piece) => piece.square !== toSquare || piece === movingPiece);
   movingPiece.square = toSquare;
   gameState.currentTurn = gameState.currentTurn === "white" ? "black" : "white";
   clearSelection();
+  return {
+    movingPiece,
+    capturedPiece,
+  };
 }
 
 function buildAnimationClone(sourceElement, rect) {
@@ -703,9 +828,10 @@ function maybeRunComputerTurn() {
       captureRect: getRenderedPieceElement(computerMove.toSquare)?.getBoundingClientRect(),
     };
 
-    performMove(computerMove.fromSquare, computerMove.toSquare);
+    const moveResult = performMove(computerMove.fromSquare, computerMove.toSquare);
     renderBoard();
     animateMoveTransition(moveSnapshot);
+    playSoundEffect(moveResult?.capturedPiece ? "capture" : "move");
   }, gameConfig.aiMoveDelayMs);
 }
 
@@ -727,9 +853,10 @@ function handleSquareClick(squareName) {
       captureRect: getRenderedPieceElement(squareName)?.getBoundingClientRect(),
     };
 
-    performMove(gameState.selectedPiece.square, squareName);
+    const moveResult = performMove(gameState.selectedPiece.square, squareName);
     renderBoard();
     animateMoveTransition(moveSnapshot);
+    playSoundEffect(moveResult?.capturedPiece ? "capture" : "move");
     maybeRunComputerTurn();
     return;
   }
@@ -778,6 +905,63 @@ function updateHud() {
   turnDisplayElement.textContent = gameState.currentTurn[0].toUpperCase() + gameState.currentTurn.slice(1);
   turnPillElement.classList.toggle("white-turn", gameState.currentTurn === "white");
   turnPillElement.classList.toggle("black-turn", gameState.currentTurn === "black");
+}
+
+function createCapturedPieceElement(piece) {
+  const tile = document.createElement("div");
+  tile.className = "captured-piece";
+  tile.dataset.color = piece.color;
+  tile.dataset.type = piece.type;
+  tile.title = `${piece.color} ${piece.type}`;
+
+  const visualState = getPieceVisualState(piece);
+  if (visualState.useImage) {
+    tile.classList.add("image-piece");
+    const image = document.createElement("img");
+    image.className = "captured-piece-img";
+    image.src = visualState.assetPath;
+    image.alt = "";
+    image.decoding = "async";
+    image.loading = "eager";
+    image.draggable = false;
+    image.setAttribute("aria-hidden", "true");
+    tile.appendChild(image);
+  } else {
+    tile.classList.add("placeholder-piece", `${piece.color}-${piece.type}`);
+    const label = document.createElement("span");
+    label.className = "captured-piece-label";
+    label.textContent = pieceSymbols[piece.color][piece.type];
+    tile.appendChild(label);
+
+    for (const assetPath of getPieceAssetOptions(piece)) {
+      requestPieceAssetCheck(assetPath);
+    }
+  }
+
+  return tile;
+}
+
+function renderCapturedPieces() {
+  const targets = [
+    { element: capturedWhiteElement, pieces: gameState.capturedPieces.white },
+    { element: capturedBlackElement, pieces: gameState.capturedPieces.black },
+  ];
+
+  for (const target of targets) {
+    target.element.innerHTML = "";
+
+    if (target.pieces.length === 0) {
+      const emptyState = document.createElement("span");
+      emptyState.className = "captured-empty";
+      emptyState.textContent = "None yet";
+      target.element.appendChild(emptyState);
+      continue;
+    }
+
+    for (const piece of target.pieces) {
+      target.element.appendChild(createCapturedPieceElement(piece));
+    }
+  }
 }
 
 function createPieceElement(piece) {
@@ -882,11 +1066,16 @@ function renderBoard() {
     }
   }
 
+  renderCapturedPieces();
   updateHud();
   updateStatusText();
 }
 
 function attachSetupEvents() {
+  const unlockAudio = () => unlockAudioContext();
+  window.addEventListener("pointerdown", unlockAudio, { passive: true });
+  window.addEventListener("keydown", unlockAudio);
+
   for (const button of modeOptionButtons) {
     button.addEventListener("click", () => {
       setupState.mode = button.dataset.modeOption;

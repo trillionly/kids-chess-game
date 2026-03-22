@@ -59,17 +59,29 @@
         <button id="new-game-button" type="button" class="small-button">New Game</button>
       </section>
 
-      <section class="board-area" aria-label="Chess board game area">
-        <div class="board-stage">
-          <div class="board-frame">
-            <div
-              id="chessboard"
-              class="chessboard"
-              role="grid"
-              aria-label="8 by 8 chess board"
-            ></div>
+      <section class="board-shell" aria-label="Chess board game area">
+        <aside class="captured-panel captured-panel-white" aria-label="Captured white pieces">
+          <h2 class="captured-title">Captured White</h2>
+          <div id="captured-white" class="captured-grid"></div>
+        </aside>
+
+        <section class="board-area">
+          <div class="board-stage">
+            <div class="board-frame">
+              <div
+                id="chessboard"
+                class="chessboard"
+                role="grid"
+                aria-label="8 by 8 chess board"
+              ></div>
+            </div>
           </div>
-        </div>
+        </section>
+
+        <aside class="captured-panel captured-panel-black" aria-label="Captured black pieces">
+          <h2 class="captured-title">Captured Black</h2>
+          <div id="captured-black" class="captured-grid"></div>
+        </aside>
       </section>
     </section>
   </main>
