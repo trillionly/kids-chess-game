@@ -456,7 +456,7 @@ button {
 }
 
 .promotion-card {
-  width: min(92vw, 680px);
+  width: min(96vw, 920px);
   padding: 1.2rem;
   border-radius: 28px;
   border: 1px solid rgba(255, 229, 179, 0.24);
@@ -472,6 +472,7 @@ button {
   text-align: center;
   color: #fff1d2;
   font-size: clamp(1.4rem, 2.4vw, 2rem);
+  white-space: nowrap;
 }
 
 .promotion-options {
@@ -481,7 +482,7 @@ button {
 }
 
 .promotion-button {
-  min-height: 196px;
+  min-height: 232px;
   border: 1px solid rgba(255, 229, 179, 0.22);
   border-radius: 22px;
   background:
@@ -509,8 +510,8 @@ button {
 }
 
 .promotion-piece {
-  width: 132px;
-  height: 132px;
+  width: 172px;
+  height: 172px;
   display: flex;
   align-items: center;
   justify-content: center;
