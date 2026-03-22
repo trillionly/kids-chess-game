@@ -308,7 +308,7 @@ button {
   text-align: center;
   white-space: nowrap;
   position: relative;
-  left: 0;
+  left: -95px;
   z-index: 1;
   line-height: 0.88;
 }
