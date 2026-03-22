@@ -249,7 +249,7 @@ button {
 
 .start-character-king {
   position: relative;
-  left: 30px;
+  left: 70px;
   width: var(--start-king-size);
   height: var(--start-king-size);
 }
