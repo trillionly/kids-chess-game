@@ -10,6 +10,7 @@ const turnDisplayElement = document.getElementById("turn-display");
 const turnPillElement = document.getElementById("turn-pill");
 const newGameButton = document.getElementById("new-game-button");
 const animationLayerElement = document.getElementById("animation-layer");
+const boardFrameElement = document.getElementById("board-frame");
 const capturedWhiteElement = document.getElementById("captured-white");
 const capturedBlackElement = document.getElementById("captured-black");
 
@@ -905,6 +906,8 @@ function updateHud() {
   turnDisplayElement.textContent = gameState.currentTurn[0].toUpperCase() + gameState.currentTurn.slice(1);
   turnPillElement.classList.toggle("white-turn", gameState.currentTurn === "white");
   turnPillElement.classList.toggle("black-turn", gameState.currentTurn === "black");
+  boardFrameElement.classList.toggle("white-turn-glow", gameState.currentTurn === "white");
+  boardFrameElement.classList.toggle("black-turn-glow", gameState.currentTurn === "black");
 }
 
 function createCapturedPieceElement(piece) {
@@ -953,14 +956,6 @@ function renderCapturedPieces() {
 
   for (const target of targets) {
     target.element.innerHTML = "";
-
-    if (target.pieces.length === 0) {
-      const emptyState = document.createElement("span");
-      emptyState.className = "captured-empty";
-      emptyState.textContent = "None yet";
-      target.element.appendChild(emptyState);
-      continue;
-    }
 
     for (const piece of target.pieces) {
       target.element.appendChild(createCapturedPieceElement(piece));
