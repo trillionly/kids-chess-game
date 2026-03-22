@@ -706,14 +706,15 @@ button {
 }
 
 .captured-strip-left {
-  left: -26px;
-  top: 10%;
+  left: -74px;
+  top: 2%;
   justify-items: end;
 }
 
 .captured-strip-right {
-  right: -26px;
-  bottom: 10%;
+  right: -74px;
+  bottom: 1%;
+  align-content: end;
   justify-items: start;
 }
 
@@ -1354,13 +1355,13 @@ button {
   }
 
   .captured-strip-left {
-    left: -22px;
-    top: 8%;
+    left: -34px;
+    top: 4%;
   }
 
   .captured-strip-right {
-    right: -22px;
-    bottom: 8%;
+    right: -34px;
+    bottom: 2%;
   }
 
   .start-screen {
