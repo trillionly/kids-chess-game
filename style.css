@@ -34,7 +34,7 @@
   --start-card-padding-x: clamp(1.4rem, 3vw, 2.2rem);
   --start-card-padding-top: clamp(0.42rem, 0.7vw, 0.6rem);
   --start-card-padding-bottom: calc(clamp(1.2rem, 2vw, 1.7rem) + 20px);
-  --start-card-offset-y: -80px;
+  --start-card-offset-y: -70px;
   --start-content-offset-y: -5px;
   --start-side-width: 250px;
   --start-hero-gap: clamp(0.2rem, 0.8vw, 0.6rem);
@@ -160,6 +160,10 @@ button {
   position: relative;
   transform: translateY(var(--start-card-offset-y));
   overflow: visible;
+}
+
+.start-screen.single-mode-active .start-card {
+  transform: translateY(calc(var(--start-card-offset-y) - 20px));
 }
 
 .start-card::before,

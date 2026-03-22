@@ -197,6 +197,8 @@ function showStartScreen() {
 }
 
 function updateSetupControls() {
+  startScreenElement.classList.toggle("single-mode-active", setupState.mode === "single");
+
   for (const button of modeOptionButtons) {
     button.classList.toggle("is-selected", button.dataset.modeOption === setupState.mode);
   }
