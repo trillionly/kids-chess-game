@@ -523,8 +523,6 @@ button {
 
 .captured-strip {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
   display: flex;
   flex-direction: column;
   gap: 0.28rem;
@@ -536,11 +534,13 @@ button {
 
 .captured-strip-left {
   left: -92px;
+  top: 10%;
   align-items: flex-end;
 }
 
 .captured-strip-right {
   right: -92px;
+  bottom: 10%;
   align-items: flex-start;
 }
 
@@ -1089,8 +1089,8 @@ button {
 }
 
 .captured-piece {
-  width: 72px;
-  height: 72px;
+  width: 86px;
+  height: 86px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1102,8 +1102,8 @@ button {
 }
 
 .captured-piece-img {
-  width: 98%;
-  height: 98%;
+  width: 100%;
+  height: 100%;
   display: block;
   object-fit: contain;
   object-position: center;
@@ -1151,10 +1151,12 @@ button {
 
   .captured-strip-left {
     left: -66px;
+    top: 8%;
   }
 
   .captured-strip-right {
     right: -66px;
+    bottom: 8%;
   }
 
   .start-screen {
