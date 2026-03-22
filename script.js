@@ -784,7 +784,6 @@ function applyPromotion(piece, nextType) {
 
 function createPromotionOptionButton(color, type) {
   const piece = createPieceData(color, type, `${color}-${type}-promotion`);
-  const visualState = getPieceVisualState(piece);
   const button = document.createElement("button");
   button.type = "button";
   button.className = "promotion-button";
@@ -792,19 +791,18 @@ function createPromotionOptionButton(color, type) {
 
   const pieceElement = document.createElement("div");
   pieceElement.className = "promotion-piece";
-
-  if (visualState.useImage) {
-    const image = document.createElement("img");
-    image.src = visualState.assetPath;
-    image.alt = "";
-    image.decoding = "async";
-    image.loading = "eager";
-    image.draggable = false;
-    pieceElement.appendChild(image);
-  } else {
+  const image = document.createElement("img");
+  image.src = getPieceAssetPath(piece);
+  image.alt = "";
+  image.decoding = "async";
+  image.loading = "eager";
+  image.draggable = false;
+  image.addEventListener("error", () => {
+    image.remove();
     pieceElement.classList.add("placeholder-piece", `${color}-${type}`);
     pieceElement.textContent = pieceSymbols[color][type];
-  }
+  }, { once: true });
+  pieceElement.appendChild(image);
 
   const label = document.createElement("span");
   label.className = "promotion-label";

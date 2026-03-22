@@ -426,6 +426,10 @@ button {
   backdrop-filter: blur(8px);
 }
 
+.promotion-overlay.is-hidden {
+  display: none;
+}
+
 .promotion-card {
   width: min(92vw, 680px);
   padding: 1.2rem;
