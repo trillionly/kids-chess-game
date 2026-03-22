@@ -6,7 +6,8 @@
   --piece-light: #fffdf8;
   --piece-dark: #4f78d1;
   --piece-outline: #2e2a26;
-  --highlight: #ff5f5f;
+  --selected-highlight: #ffd84d;
+  --move-highlight: #72d97e;
   --text-main: #402816;
   --shadow-soft: 0 14px 36px rgba(64, 40, 22, 0.16);
 }
@@ -74,6 +75,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
 }
 
 .square.light {
@@ -91,6 +93,25 @@ body {
   right: 0.32rem;
   font-size: clamp(0.55rem, 1vw, 0.78rem);
   color: rgba(64, 40, 22, 0.42);
+}
+
+.square.valid-move::before,
+.square.capture-move::before {
+  content: "";
+  position: absolute;
+  inset: 12%;
+  border-radius: 18px;
+  pointer-events: none;
+}
+
+.square.valid-move::before {
+  background: color-mix(in srgb, var(--move-highlight) 28%, transparent);
+  box-shadow: inset 0 0 0 4px rgba(69, 157, 81, 0.9);
+}
+
+.square.capture-move::before {
+  background: color-mix(in srgb, var(--move-highlight) 20%, transparent);
+  box-shadow: inset 0 0 0 5px rgba(69, 157, 81, 0.95);
 }
 
 .piece {
@@ -125,8 +146,8 @@ body {
 }
 
 .piece.selected {
-  outline: 6px solid var(--highlight);
-  box-shadow: 0 0 0 8px rgba(255, 95, 95, 0.2);
+  outline: 6px solid var(--selected-highlight);
+  box-shadow: 0 0 0 8px rgba(255, 216, 77, 0.28);
 }
 
 .piece.image-piece .piece-label {
@@ -149,5 +170,10 @@ body {
 
   .piece {
     border-width: 3px;
+  }
+
+  .square.valid-move::before,
+  .square.capture-move::before {
+    inset: 14%;
   }
 }
