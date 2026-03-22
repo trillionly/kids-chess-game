@@ -128,7 +128,7 @@ button {
 }
 
 .start-card {
-  width: min(100%, 760px);
+  width: min(100%, 1180px);
   margin: 0 auto;
   padding: clamp(1.7rem, 3vw, 2.6rem);
   border-radius: 32px;
@@ -161,9 +161,9 @@ button {
 
 .start-hero {
   display: grid;
-  grid-template-columns: minmax(110px, 160px) minmax(0, 1fr) minmax(110px, 160px);
+  grid-template-columns: minmax(240px, 320px) minmax(max-content, 1fr) minmax(240px, 320px);
   align-items: end;
-  gap: 0.6rem;
+  gap: 0.9rem;
   position: relative;
   z-index: 1;
 }
@@ -172,8 +172,8 @@ button {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  gap: 0.1rem;
-  min-height: 118px;
+  gap: 0.2rem;
+  min-height: 320px;
 }
 
 .start-team-white {
@@ -186,22 +186,22 @@ button {
 
 .start-character {
   display: block;
-  width: 78px;
-  height: 78px;
+  width: 300px;
+  height: 300px;
   object-fit: contain;
   filter: drop-shadow(0 10px 14px rgba(10, 8, 14, 0.22));
   transform-origin: center bottom;
 }
 
 .start-character-king {
-  width: 88px;
-  height: 88px;
+  width: 340px;
+  height: 340px;
 }
 
 .start-character-bishop,
 .start-character-knight {
-  width: 74px;
-  height: 74px;
+  width: 280px;
+  height: 280px;
 }
 
 .start-card h1,
@@ -214,6 +214,10 @@ button {
   text-shadow:
     0 2px 0 rgba(74, 43, 16, 0.56),
     0 10px 30px rgba(255, 212, 122, 0.18);
+}
+
+.start-card h1 {
+  white-space: nowrap;
 }
 
 .hero h1 {
