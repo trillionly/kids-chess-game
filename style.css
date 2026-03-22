@@ -199,8 +199,8 @@ button {
 }
 
 .start-character-king {
-  width: 224px;
-  height: 224px;
+  width: 246px;
+  height: 246px;
 }
 
 .start-character-bishop,
@@ -210,13 +210,13 @@ button {
 }
 
 .start-character-bishop {
-  width: 259px;
-  height: 259px;
+  width: 233px;
+  height: 233px;
 }
 
 .start-character-knight {
-  width: 278px;
-  height: 278px;
+  width: 250px;
+  height: 250px;
 }
 
 .start-character.is-animated {
