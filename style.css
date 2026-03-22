@@ -178,7 +178,7 @@ button {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  gap: 0.04rem;
+  gap: 0;
   bottom: -2.05rem;
   min-height: 0;
   margin-bottom: 0;
@@ -186,13 +186,18 @@ button {
 }
 
 .start-team-white {
-  left: -0.1rem;
+  left: -1.1rem;
   justify-content: flex-end;
 }
 
 .start-team-black {
-  right: -0.85rem;
+  right: -1.85rem;
   justify-content: flex-start;
+}
+
+.start-team-white .start-character + .start-character,
+.start-team-black .start-character + .start-character {
+  margin-left: -0.95rem;
 }
 
 .start-character {
