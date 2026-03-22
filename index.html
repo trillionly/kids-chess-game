@@ -8,20 +8,70 @@
 </head>
 <body>
   <main class="app">
-    <header class="hero">
-      <h1>Kids Chess Game</h1>
-      <p id="game-status">White's turn. Pick a piece to get started.</p>
-    </header>
+    <section id="start-screen" class="start-screen">
+      <div class="start-card">
+        <h1>Kids Chess Game</h1>
+        <p class="start-text">Choose how you want to play, then jump into the game.</p>
 
-    <section class="board-area" aria-label="Chess board game area">
-      <div class="board-frame">
-        <div
-          id="chessboard"
-          class="chessboard"
-          role="grid"
-          aria-label="8 by 8 chess board"
-        ></div>
+        <div class="selection-group" aria-label="Game mode">
+          <h2>Game Mode</h2>
+          <div class="button-row">
+            <button type="button" class="choice-button is-selected" data-mode-option="single">
+              Single Player
+            </button>
+            <button type="button" class="choice-button" data-mode-option="two-player">
+              Two Player
+            </button>
+          </div>
+        </div>
+
+        <div id="level-group" class="selection-group" aria-label="Difficulty level">
+          <h2>Difficulty</h2>
+          <div class="level-grid">
+            <button type="button" class="choice-button is-selected" data-level-option="1">Level 1</button>
+            <button type="button" class="choice-button" data-level-option="2">Level 2</button>
+            <button type="button" class="choice-button" data-level-option="3">Level 3</button>
+            <button type="button" class="choice-button" data-level-option="4">Level 4</button>
+            <button type="button" class="choice-button" data-level-option="5">Level 5</button>
+          </div>
+        </div>
+
+        <button id="start-game-button" type="button" class="start-button">Start Game</button>
       </div>
+    </section>
+
+    <section id="game-screen" class="game-screen is-hidden" aria-label="Chess game">
+      <header class="hero">
+        <h1>Kids Chess Game</h1>
+        <p id="game-status">White's turn.</p>
+      </header>
+
+      <section class="game-hud" aria-label="Current game settings">
+        <div class="info-pill">
+          <span class="info-label">Mode</span>
+          <strong id="mode-display">Single Player</strong>
+        </div>
+        <div class="info-pill">
+          <span class="info-label">Level</span>
+          <strong id="level-display">1</strong>
+        </div>
+        <div class="info-pill">
+          <span class="info-label">Turn</span>
+          <strong id="turn-display">White</strong>
+        </div>
+        <button id="new-game-button" type="button" class="small-button">New Game</button>
+      </section>
+
+      <section class="board-area" aria-label="Chess board game area">
+        <div class="board-frame">
+          <div
+            id="chessboard"
+            class="chessboard"
+            role="grid"
+            aria-label="8 by 8 chess board"
+          ></div>
+        </div>
+      </section>
     </section>
   </main>
 
