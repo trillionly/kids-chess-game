@@ -49,8 +49,8 @@
   --start-black-y: 0px;
   --start-white-team-gap: -0.55rem;
   --start-black-team-gap: -0.55rem;
-  --start-mode-offset-y: 0px;
-  --start-help-offset-y: 0px;
+  --start-mode-offset-y: 15px;
+  --start-help-offset-y: 15px;
   --start-character-size: 153px;
   --start-king-size: 192px;
   --start-bishop-size: 177px;
