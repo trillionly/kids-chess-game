@@ -80,6 +80,7 @@ const soundState = {
 
 const interactionState = {
   characterTimers: new WeakMap(),
+  touchStartY: null,
 };
 
 const gameState = {
@@ -1322,6 +1323,28 @@ function attachSetupEvents() {
   const unlockAudio = () => unlockAudioContext();
   window.addEventListener("pointerdown", unlockAudio, { passive: true });
   window.addEventListener("keydown", unlockAudio);
+  window.addEventListener("touchstart", (event) => {
+    if (event.touches.length === 1) {
+      interactionState.touchStartY = event.touches[0].clientY;
+    }
+  }, { passive: true });
+  window.addEventListener("touchmove", (event) => {
+    if (event.touches.length !== 1 || interactionState.touchStartY === null) {
+      return;
+    }
+
+    const currentY = event.touches[0].clientY;
+    const isPullingDown = currentY > interactionState.touchStartY;
+    if (isPullingDown && window.scrollY <= 0) {
+      event.preventDefault();
+    }
+  }, { passive: false });
+  window.addEventListener("touchend", () => {
+    interactionState.touchStartY = null;
+  }, { passive: true });
+  window.addEventListener("touchcancel", () => {
+    interactionState.touchStartY = null;
+  }, { passive: true });
 
   for (const character of startCharacterElements) {
     character.addEventListener("pointerenter", () => triggerStartCharacterInteraction(character));

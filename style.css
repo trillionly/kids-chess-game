@@ -63,6 +63,7 @@
 
 html {
   min-height: 100%;
+  overscroll-behavior-y: none;
 }
 
 body {
@@ -77,6 +78,7 @@ body {
     linear-gradient(180deg, var(--page-bg-top) 0%, #191424 46%, var(--page-bg-bottom) 100%);
   position: relative;
   overflow-x: hidden;
+  overscroll-behavior-y: none;
 }
 
 body::before,
@@ -112,6 +114,7 @@ button {
   justify-content: flex-start;
   padding: 30px 1.5rem 2rem;
   position: relative;
+  overscroll-behavior-y: none;
 }
 
 .start-screen,
