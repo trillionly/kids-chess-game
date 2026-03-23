@@ -59,6 +59,8 @@ const gameConfig = {
   soundAssets: {
     move: "assets/audio/move.mp3",
     capture: "assets/audio/capture.mp3",
+    check: "assets/audio/check.mp3",
+    checkmate: "assets/audio/checkmate.mp3",
     victory: "assets/audio/victory.mp3",
     character: "assets/audio/character.mp3",
   },
@@ -98,10 +100,17 @@ const gameState = {
   },
   winner: null,
   isGameOver: false,
+  isStalemate: false,
   pendingPromotion: null,
   isComputerThinking: false,
   aiTimerId: null,
   moveGuideEnabled: true,
+  checkState: {
+    checkedColor: null,
+    inCheck: false,
+    checkmate: false,
+    stalemate: false,
+  },
 };
 
 function createStartingPieces() {
@@ -162,8 +171,15 @@ function resetBoardState() {
   };
   gameState.winner = null;
   gameState.isGameOver = false;
+  gameState.isStalemate = false;
   gameState.pendingPromotion = null;
   gameState.isComputerThinking = false;
+  gameState.checkState = {
+    checkedColor: null,
+    inCheck: false,
+    checkmate: false,
+    stalemate: false,
+  };
 }
 
 function startGame() {
@@ -175,6 +191,7 @@ function startGame() {
   startScreenElement.classList.add("is-hidden");
   gameScreenElement.classList.remove("is-hidden");
 
+  updateThreatState(false);
   renderBoard();
 }
 
@@ -192,7 +209,14 @@ function showStartScreen() {
   gameState.isComputerThinking = false;
   gameState.winner = null;
   gameState.isGameOver = false;
+  gameState.isStalemate = false;
   gameState.pendingPromotion = null;
+  gameState.checkState = {
+    checkedColor: null,
+    inCheck: false,
+    checkmate: false,
+    stalemate: false,
+  };
   startScreenElement.classList.remove("is-hidden");
   gameScreenElement.classList.add("is-hidden");
   updateSetupControls();
@@ -392,6 +416,27 @@ function playFallbackSound(kind) {
     return;
   }
 
+  if (kind === "checkmate") {
+    playFallbackToneSequence({
+      notes: [
+        { frequency: 392, start: 0, duration: 0.18, volume: 0.05, wave: "triangle" },
+        { frequency: 523, start: 0.08, duration: 0.22, volume: 0.055, wave: "triangle" },
+        { frequency: 659, start: 0.18, duration: 0.28, volume: 0.05, wave: "sine" },
+      ],
+    });
+    return;
+  }
+
+  if (kind === "check") {
+    playFallbackToneSequence({
+      notes: [
+        { frequency: 698, start: 0, duration: 0.11, volume: 0.042, wave: "triangle" },
+        { frequency: 784, start: 0.04, duration: 0.14, volume: 0.038, wave: "sine" },
+      ],
+    });
+    return;
+  }
+
   if (kind === "capture") {
     playFallbackToneSequence({
       notes: [
@@ -421,7 +466,7 @@ function playSoundEffect(kind) {
 
   const audio = new Audio(assetPath);
   audio.preload = "auto";
-  audio.volume = kind === "capture" ? 0.72 : 0.62;
+  audio.volume = kind === "capture" ? 0.72 : kind === "checkmate" ? 0.68 : 0.62;
   let hasHandledFailure = false;
 
   const markMissing = () => {
@@ -562,7 +607,7 @@ function getKingMoves(piece, pieceMap) {
   return moves;
 }
 
-function getValidMovesForPiece(piece, pieces = gameState.pieces) {
+function getPseudoLegalMovesForPiece(piece, pieces = gameState.pieces) {
   const pieceMap = createPieceMapFromPieces(pieces);
 
   switch (piece.type) {
@@ -600,6 +645,73 @@ function getValidMovesForPiece(piece, pieces = gameState.pieces) {
     default:
       return [];
   }
+}
+
+function getAttackSquaresForPiece(piece, pieces = gameState.pieces) {
+  const pieceMap = createPieceMapFromPieces(pieces);
+
+  if (piece.type === "pawn") {
+    const attacks = [];
+    const { file, rank } = squareToPosition(piece.square);
+    const direction = piece.color === "white" ? 1 : -1;
+
+    for (const fileOffset of [-1, 1]) {
+      const attackSquare = positionToSquare(file + fileOffset, rank + direction);
+      if (attackSquare) {
+        attacks.push(attackSquare);
+      }
+    }
+
+    return attacks;
+  }
+
+  return getPseudoLegalMovesForPiece(piece, pieces).map((move) => move.square);
+}
+
+function findKing(color, pieces = gameState.pieces) {
+  return pieces.find((piece) => piece.color === color && piece.type === "king") || null;
+}
+
+function isSquareAttacked(square, attackerColor, pieces = gameState.pieces) {
+  for (const piece of pieces) {
+    if (piece.color !== attackerColor) {
+      continue;
+    }
+
+    const attackSquares = getAttackSquaresForPiece(piece, pieces);
+    if (attackSquares.includes(square)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function isKingInCheck(color, pieces = gameState.pieces) {
+  const king = findKing(color, pieces);
+  if (!king) {
+    return false;
+  }
+
+  const attackerColor = color === "white" ? "black" : "white";
+  return isSquareAttacked(king.square, attackerColor, pieces);
+}
+
+function getLegalMovesForPiece(piece, pieces = gameState.pieces) {
+  const pseudoMoves = getPseudoLegalMovesForPiece(piece, pieces);
+
+  return pseudoMoves.filter((move) => {
+    const nextPieces = simulateMove(pieces, {
+      piece,
+      fromSquare: piece.square,
+      toSquare: move.square,
+    });
+    return !isKingInCheck(piece.color, nextPieces);
+  });
+}
+
+function getValidMovesForPiece(piece, pieces = gameState.pieces) {
+  return getPseudoLegalMovesForPiece(piece, pieces);
 }
 
 function clearSelection() {
@@ -648,6 +760,42 @@ function getAllValidMoves(color, pieces = gameState.pieces) {
   }
 
   return moves;
+}
+
+function getAllLegalMoves(color, pieces = gameState.pieces) {
+  const moves = [];
+
+  for (const piece of pieces) {
+    if (piece.color !== color) {
+      continue;
+    }
+
+    const legalMoves = getLegalMovesForPiece(piece, pieces);
+    for (const move of legalMoves) {
+      moves.push({
+        piece,
+        fromSquare: piece.square,
+        toSquare: move.square,
+        moveType: move.type,
+      });
+    }
+  }
+
+  return moves;
+}
+
+function evaluateTurnState(colorToMove = gameState.currentTurn, pieces = gameState.pieces) {
+  const inCheck = isKingInCheck(colorToMove, pieces);
+  const legalMoves = getAllLegalMoves(colorToMove, pieces);
+  const checkmate = inCheck && legalMoves.length === 0;
+  const stalemate = !inCheck && legalMoves.length === 0;
+
+  return {
+    checkedColor: inCheck ? colorToMove : null,
+    inCheck,
+    checkmate,
+    stalemate,
+  };
 }
 
 function clonePieces(pieces) {
@@ -832,8 +980,9 @@ function openPromotionChooser(piece) {
     button.addEventListener("click", () => {
       applyPromotion(piece, type);
       gameState.pendingPromotion = null;
+      updateThreatState(true);
       renderBoard();
-      if (isSinglePlayerGame() && gameState.currentTurn === "black") {
+      if (!gameState.isGameOver && isSinglePlayerGame() && gameState.currentTurn === "black") {
         maybeRunComputerTurn();
       }
     });
@@ -908,9 +1057,10 @@ function launchConfetti() {
   }
 }
 
-function endGameWithWinner(winnerColor) {
+function endGameWithWinner(winnerColor, reason = "capture") {
   gameState.winner = winnerColor;
   gameState.isGameOver = true;
+  gameState.isStalemate = false;
   gameState.isComputerThinking = false;
 
   if (gameState.aiTimerId) {
@@ -921,14 +1071,46 @@ function endGameWithWinner(winnerColor) {
   const winnerName = winnerColor[0].toUpperCase() + winnerColor.slice(1);
   statusElement.textContent = `${winnerName} wins!`;
   victoryTitleElement.textContent = `${winnerName} Wins!`;
-  victoryMessageElement.textContent = "The king has fallen!";
+  victoryMessageElement.textContent = reason === "checkmate" ? "Checkmate!" : "The king has fallen!";
   victoryLeftPieceElement.innerHTML = "";
   victoryRightPieceElement.innerHTML = "";
   victoryLeftPieceElement.appendChild(createCelebrationPiece(winnerColor, "king"));
   victoryRightPieceElement.appendChild(createCelebrationPiece(winnerColor, "queen"));
   victoryOverlayElement.classList.remove("is-hidden");
-  playSoundEffect("victory");
+  playSoundEffect(reason === "checkmate" ? "checkmate" : "victory");
   launchConfetti();
+}
+
+function endGameAsStalemate() {
+  gameState.winner = null;
+  gameState.isGameOver = true;
+  gameState.isStalemate = true;
+  gameState.isComputerThinking = false;
+
+  if (gameState.aiTimerId) {
+    window.clearTimeout(gameState.aiTimerId);
+    gameState.aiTimerId = null;
+  }
+
+  statusElement.textContent = "Stalemate!";
+  victoryOverlayElement.classList.add("is-hidden");
+}
+
+function updateThreatState(playSound = false) {
+  const nextState = evaluateTurnState(gameState.currentTurn, gameState.pieces);
+  gameState.checkState = nextState;
+
+  gameState.isStalemate = false;
+
+  if (playSound) {
+    if (nextState.checkmate) {
+      playSoundEffect("checkmate");
+    } else if (nextState.inCheck) {
+      playSoundEffect("check");
+    }
+  }
+
+  return nextState;
 }
 
 function buildAnimationClone(sourceElement, rect) {
@@ -1031,7 +1213,7 @@ function maybeRunComputerTurn() {
     gameState.aiTimerId = null;
 
     if (!computerMove) {
-      statusElement.textContent = "Black has no moves right now.";
+      updateThreatState(false);
       renderBoard();
       return;
     }
@@ -1051,7 +1233,10 @@ function maybeRunComputerTurn() {
       renderBoard();
       return;
     }
-    maybeHandlePromotionAfterMove(moveResult);
+    const promotionHandled = maybeHandlePromotionAfterMove(moveResult);
+    if (!promotionHandled) {
+      updateThreatState(true);
+    }
     renderBoard();
     animateMoveTransition(moveSnapshot);
     playSoundEffect(moveResult?.capturedPiece ? "capture" : "move");
@@ -1083,6 +1268,9 @@ function handleSquareClick(squareName) {
       return;
     }
     const promotionHandled = maybeHandlePromotionAfterMove(moveResult);
+    if (!promotionHandled) {
+      updateThreatState(true);
+    }
     renderBoard();
     animateMoveTransition(moveSnapshot);
     playSoundEffect(moveResult?.capturedPiece ? "capture" : "move");
@@ -1119,6 +1307,18 @@ function updateStatusText() {
     return;
   }
 
+  if (gameState.checkState.checkmate && gameState.checkState.checkedColor) {
+    const checkedName = gameState.checkState.checkedColor[0].toUpperCase() + gameState.checkState.checkedColor.slice(1);
+    statusElement.textContent = `${checkedName} is in checkmate!`;
+    return;
+  }
+
+  if (gameState.checkState.inCheck && gameState.checkState.checkedColor) {
+    const checkedName = gameState.checkState.checkedColor[0].toUpperCase() + gameState.checkState.checkedColor.slice(1);
+    statusElement.textContent = `${checkedName} is in check!`;
+    return;
+  }
+
   statusElement.textContent = "";
 }
 
@@ -1133,7 +1333,7 @@ function updateHud() {
   turnPillElement.classList.toggle("black-turn", gameState.currentTurn === "black");
   boardFrameElement.classList.toggle("white-turn-glow", gameState.currentTurn === "white");
   boardFrameElement.classList.toggle("black-turn-glow", gameState.currentTurn === "black");
-  victoryOverlayElement.classList.toggle("is-hidden", !gameState.isGameOver);
+  victoryOverlayElement.classList.toggle("is-hidden", !gameState.isGameOver || !gameState.winner);
   promotionOverlayElement.classList.toggle("is-hidden", !gameState.pendingPromotion);
 }
 
