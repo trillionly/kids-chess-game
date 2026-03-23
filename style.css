@@ -51,10 +51,10 @@
   --start-black-team-gap: -0.55rem;
   --start-mode-offset-y: 0px;
   --start-help-offset-y: 0px;
-  --start-character-size: 118px;
-  --start-king-size: 148px;
-  --start-bishop-size: 136px;
-  --start-knight-size: 144px;
+  --start-character-size: 153px;
+  --start-king-size: 192px;
+  --start-bishop-size: 177px;
+  --start-knight-size: 187px;
 }
 
 * {
@@ -258,11 +258,12 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
+  transform: translateY(40px);
 }
 
 .start-versus-badge {
-  min-width: 88px;
-  height: 88px;
+  min-width: 62px;
+  height: 62px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -272,7 +273,7 @@ button {
     radial-gradient(circle at 35% 30%, rgba(255, 246, 211, 0.18) 0%, transparent 42%),
     linear-gradient(180deg, rgba(82, 55, 38, 0.95) 0%, rgba(34, 24, 32, 0.98) 100%);
   color: #fff1ca;
-  font-size: 1.8rem;
+  font-size: 1.26rem;
   font-weight: 900;
   letter-spacing: 0.08em;
   box-shadow:
@@ -289,6 +290,7 @@ button {
   width: var(--start-character-size);
   height: var(--start-character-size);
   object-fit: contain;
+  transform: translateY(40px);
   filter: drop-shadow(0 10px 14px rgba(10, 8, 14, 0.22));
   transform-origin: center bottom;
   transition:
