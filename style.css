@@ -824,14 +824,14 @@ button {
 
 .captured-strip-left {
   left: -119px;
-  top: calc(2% + 215px);
+  top: 6px;
   direction: rtl;
   justify-items: end;
 }
 
 .captured-strip-right {
   right: -124px;
-  bottom: 1%;
+  bottom: -8px;
   align-content: end;
   justify-items: start;
 }
@@ -1484,12 +1484,12 @@ button {
 
   .captured-strip-left {
     left: -64px;
-    top: calc(4% + 150px);
+    top: 4px;
   }
 
   .captured-strip-right {
     right: -64px;
-    bottom: 2%;
+    bottom: -6px;
   }
 
   .start-screen {

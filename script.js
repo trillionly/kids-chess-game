@@ -1117,11 +1117,6 @@ function updateStatusText() {
     return;
   }
 
-  if (gameState.isComputerThinking) {
-    statusElement.textContent = "Black is thinking...";
-    return;
-  }
-
   statusElement.textContent = "";
 }
 
