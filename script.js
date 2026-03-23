@@ -54,7 +54,7 @@ const pieceSymbols = {
 
 const gameConfig = {
   pieceAssetExtensions: ["png"],
-  aiMoveDelayMs: 500,
+  aiMoveDelayMs: 1000,
   moveAnimationDurationMs: 1100,
   soundAssets: {
     move: "assets/audio/move.mp3",
