@@ -55,7 +55,7 @@ const pieceSymbols = {
 const gameConfig = {
   pieceAssetExtensions: ["png"],
   aiMoveDelayMs: 500,
-  moveAnimationDurationMs: 920,
+  moveAnimationDurationMs: 1100,
   soundAssets: {
     move: "assets/audio/move.mp3",
     capture: "assets/audio/capture.mp3",
@@ -79,6 +79,7 @@ const soundState = {
   audioContext: null,
   warnedKinds: new Set(),
   unavailableAssets: new Set(),
+  preferredVoice: null,
 };
 
 const interactionState = {
@@ -394,6 +395,11 @@ function playFallbackToneSequence(config) {
 }
 
 function playFallbackSound(kind) {
+  if (kind === "check") {
+    speakCheckAlert();
+    return;
+  }
+
   if (kind === "character") {
     playFallbackToneSequence({
       notes: [
@@ -485,6 +491,51 @@ function playSoundEffect(kind) {
 
   audio.addEventListener("error", markMissing, { once: true });
   audio.play().catch(markMissing);
+}
+
+function getPreferredSpeechVoice() {
+  if (!("speechSynthesis" in window)) {
+    return null;
+  }
+
+  if (soundState.preferredVoice) {
+    return soundState.preferredVoice;
+  }
+
+  const voices = window.speechSynthesis.getVoices();
+  const preferredVoice =
+    voices.find((voice) => /en/i.test(voice.lang) && /female|samantha|zira|google us english/i.test(voice.name)) ||
+    voices.find((voice) => /en/i.test(voice.lang)) ||
+    null;
+
+  soundState.preferredVoice = preferredVoice;
+  return preferredVoice;
+}
+
+function speakCheckAlert() {
+  if (!("speechSynthesis" in window)) {
+    playFallbackToneSequence({
+      notes: [
+        { frequency: 698, start: 0, duration: 0.11, volume: 0.042, wave: "triangle" },
+        { frequency: 784, start: 0.04, duration: 0.14, volume: 0.038, wave: "sine" },
+      ],
+    });
+    return;
+  }
+
+  const utterance = new SpeechSynthesisUtterance("Check");
+  const voice = getPreferredSpeechVoice();
+  if (voice) {
+    utterance.voice = voice;
+    utterance.lang = voice.lang;
+  } else {
+    utterance.lang = "en-US";
+  }
+  utterance.rate = 0.98;
+  utterance.pitch = 1.02;
+  utterance.volume = 0.9;
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utterance);
 }
 
 function getPawnMoves(piece, pieceMap) {
@@ -944,9 +995,62 @@ function countAttacksOnSquare(square, attackerColor, pieces) {
   return count;
 }
 
+function getPieceValue(type) {
+  switch (type) {
+    case "pawn":
+      return 1;
+    case "knight":
+    case "bishop":
+      return 3;
+    case "rook":
+      return 5;
+    case "queen":
+      return 9;
+    case "king":
+      return 100;
+    default:
+      return 0;
+  }
+}
+
+function evaluateMaterialBalance(pieces) {
+  return pieces.reduce((total, piece) => {
+    const value = getPieceValue(piece.type);
+    return total + (piece.color === "black" ? value : -value);
+  }, 0);
+}
+
+function getMoveTargetPiece(move, pieces = gameState.pieces) {
+  return pieces.find((piece) => piece.square === move.toSquare && piece.color !== move.piece.color) || null;
+}
+
+function getBestReplyPressureForWhite(piecesAfterBlackMove) {
+  const whiteMoves = getAllLegalMoves("white", piecesAfterBlackMove);
+  if (whiteMoves.length === 0) {
+    return 0;
+  }
+
+  let bestReply = -Infinity;
+  for (const move of whiteMoves) {
+    const targetPiece = getMoveTargetPiece(move, piecesAfterBlackMove);
+    const nextPieces = simulateMove(piecesAfterBlackMove, move);
+    let replyScore = targetPiece ? getPieceValue(targetPiece.type) * 5 : 0;
+    if (isKingInCheck("black", nextPieces)) {
+      replyScore += 7;
+    }
+    bestReply = Math.max(bestReply, replyScore);
+  }
+
+  return bestReply === -Infinity ? 0 : bestReply;
+}
+
 function scoreMove(move, level) {
   let score = Math.random() * 0.2;
   const nextPieces = simulateMove(gameState.pieces, move);
+  const targetPiece = getMoveTargetPiece(move, gameState.pieces);
+  const blackInCheckAfterMove = isKingInCheck("black", nextPieces);
+  const whiteInCheckAfterMove = isKingInCheck("white", nextPieces);
+  const whiteTurnState = evaluateTurnState("white", nextPieces);
 
   if (move.moveType === "capture") {
     score += 20;
@@ -979,11 +1083,51 @@ function scoreMove(move, level) {
     score += (3.5 - Math.abs(3.5 - destination.file)) * 0.7;
   }
 
+  if (level >= 6) {
+    score += evaluateMaterialBalance(nextPieces) * 1.8;
+    if (targetPiece) {
+      score += getPieceValue(targetPiece.type) * 5.5;
+    }
+    if (move.castle) {
+      score += 8;
+    }
+  }
+
+  if (level >= 7) {
+    if (whiteInCheckAfterMove) {
+      score += 14;
+    }
+    if (whiteTurnState.checkmate) {
+      score += 1000;
+    }
+    if (blackInCheckAfterMove) {
+      score -= 40;
+    }
+  }
+
+  if (level >= 8) {
+    const bestWhiteReply = getBestReplyPressureForWhite(nextPieces);
+    score -= bestWhiteReply * 1.6;
+  }
+
+  if (level >= 9) {
+    const destinationPressure = countAttacksOnSquare(move.toSquare, "white", nextPieces);
+    const defenders = countAttacksOnSquare(move.toSquare, "black", nextPieces);
+    score -= destinationPressure * (getPieceValue(move.piece.type) + 2.5);
+    score += defenders * 1.2;
+  }
+
+  if (level >= 10) {
+    const whiteLegalMoves = getAllLegalMoves("white", nextPieces).length;
+    score -= whiteLegalMoves * 0.22;
+    score += evaluateMaterialBalance(nextPieces) * 1.2;
+  }
+
   return score;
 }
 
 function chooseComputerMove() {
-  const allMoves = getAllValidMoves("black");
+  const allMoves = getAllLegalMoves("black");
   if (allMoves.length === 0) {
     return null;
   }

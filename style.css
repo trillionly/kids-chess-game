@@ -411,9 +411,10 @@ button {
 
 .level-grid {
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  width: min(100%, 620px);
+  width: min(100%, 700px);
   margin: 0 auto;
   position: relative;
+  grid-auto-rows: 1fr;
 }
 
 .level-grid .choice-button {
