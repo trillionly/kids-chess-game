@@ -632,7 +632,7 @@ button {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.5rem;
-  padding: 0.5rem 0.6rem;
+  padding: 0.6rem 0.72rem;
   border-radius: 24px;
   position: relative;
   overflow: hidden;
@@ -648,8 +648,8 @@ button {
 }
 
 .info-pill {
-  min-height: 42px;
-  padding: 0.34rem 0.65rem;
+  min-height: 50px;
+  padding: 0.4rem 0.78rem;
   border-radius: 16px;
   background:
     linear-gradient(180deg, rgba(255, 248, 231, 0.08) 0%, rgba(255, 225, 170, 0.02) 100%),
@@ -678,7 +678,7 @@ button {
 }
 
 .hud-toggle-button {
-  min-height: 42px;
+  min-height: 50px;
   border: none;
   text-align: left;
   cursor: pointer;
