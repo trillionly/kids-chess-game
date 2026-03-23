@@ -76,7 +76,7 @@ body {
     radial-gradient(circle at 80% 78%, rgba(160, 54, 39, 0.18) 0%, transparent 24%),
     linear-gradient(180deg, var(--page-bg-top) 0%, #191424 46%, var(--page-bg-bottom) 100%);
   position: relative;
-  overflow-x: visible;
+  overflow-x: hidden;
 }
 
 body::before,
@@ -519,7 +519,7 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.8rem;
+  gap: calc(0.8rem - 10px);
   position: relative;
   width: min(94vw, 1040px);
 }
@@ -693,14 +693,14 @@ button {
 }
 
 .board-shell {
-  width: min(100vw, 1180px);
+  width: 100%;
   display: flex;
   justify-content: center;
   overflow: visible;
 }
 
 .board-area {
-  width: min(95vw, 980px);
+  width: min(100%, 980px);
   max-width: 980px;
   position: relative;
   overflow: visible;
@@ -1415,8 +1415,8 @@ button {
 }
 
 .captured-piece {
-  width: clamp(36px, 5vw, 52px);
-  height: clamp(36px, 5vw, 52px);
+  width: clamp(54px, 7.5vw, 78px);
+  height: clamp(54px, 7.5vw, 78px);
   display: flex;
   align-items: center;
   justify-content: center;
