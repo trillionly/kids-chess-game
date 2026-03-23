@@ -150,6 +150,7 @@ function createPieceData(color, type, square) {
     color,
     type,
     square,
+    hasMoved: false,
     imageKey: `${color}-${type}`,
     assetPath: null,
   };
@@ -577,7 +578,70 @@ function getKnightMoves(piece, pieceMap) {
   return moves;
 }
 
-function getKingMoves(piece, pieceMap) {
+function getCastlingMoves(piece, pieceMap, pieces = gameState.pieces) {
+  if (piece.hasMoved || isKingInCheck(piece.color, pieces)) {
+    return [];
+  }
+
+  const moves = [];
+  const { file, rank } = squareToPosition(piece.square);
+
+  const options = [
+    {
+      rookSquare: positionToSquare(7, rank),
+      emptyFiles: [5, 6],
+      travelFiles: [5, 6],
+      destinationFile: 6,
+      rookToFile: 5,
+      side: "king",
+    },
+    {
+      rookSquare: positionToSquare(0, rank),
+      emptyFiles: [1, 2, 3],
+      travelFiles: [3, 2],
+      destinationFile: 2,
+      rookToFile: 3,
+      side: "queen",
+    },
+  ];
+
+  for (const option of options) {
+    const rook = pieceMap.get(option.rookSquare);
+    if (!rook || rook.type !== "rook" || rook.color !== piece.color || rook.hasMoved) {
+      continue;
+    }
+
+    if (file !== 4) {
+      continue;
+    }
+
+    const pathBlocked = option.emptyFiles.some((nextFile) => pieceMap.has(positionToSquare(nextFile, rank)));
+    if (pathBlocked) {
+      continue;
+    }
+
+    const underAttack = option.travelFiles.some((nextFile) =>
+      isSquareAttacked(positionToSquare(nextFile, rank), piece.color === "white" ? "black" : "white", pieces),
+    );
+    if (underAttack) {
+      continue;
+    }
+
+    moves.push({
+      square: positionToSquare(option.destinationFile, rank),
+      type: "castle",
+      castle: {
+        side: option.side,
+        rookFrom: rook.square,
+        rookTo: positionToSquare(option.rookToFile, rank),
+      },
+    });
+  }
+
+  return moves;
+}
+
+function getKingMoves(piece, pieceMap, pieces = gameState.pieces) {
   const moves = [];
   const start = squareToPosition(piece.square);
 
@@ -604,7 +668,7 @@ function getKingMoves(piece, pieceMap) {
     }
   }
 
-  return moves;
+  return moves.concat(getCastlingMoves(piece, pieceMap, pieces));
 }
 
 function getPseudoLegalMovesForPiece(piece, pieces = gameState.pieces) {
@@ -641,15 +705,13 @@ function getPseudoLegalMovesForPiece(piece, pieces = gameState.pieces) {
         [-1, -1],
       ]);
     case "king":
-      return getKingMoves(piece, pieceMap);
+      return getKingMoves(piece, pieceMap, pieces);
     default:
       return [];
   }
 }
 
 function getAttackSquaresForPiece(piece, pieces = gameState.pieces) {
-  const pieceMap = createPieceMapFromPieces(pieces);
-
   if (piece.type === "pawn") {
     const attacks = [];
     const { file, rank } = squareToPosition(piece.square);
@@ -659,6 +721,26 @@ function getAttackSquaresForPiece(piece, pieces = gameState.pieces) {
       const attackSquare = positionToSquare(file + fileOffset, rank + direction);
       if (attackSquare) {
         attacks.push(attackSquare);
+      }
+    }
+
+    return attacks;
+  }
+
+  if (piece.type === "king") {
+    const attacks = [];
+    const start = squareToPosition(piece.square);
+
+    for (let fileOffset = -1; fileOffset <= 1; fileOffset += 1) {
+      for (let rankOffset = -1; rankOffset <= 1; rankOffset += 1) {
+        if (fileOffset === 0 && rankOffset === 0) {
+          continue;
+        }
+
+        const nextSquare = positionToSquare(start.file + fileOffset, start.rank + rankOffset);
+        if (nextSquare) {
+          attacks.push(nextSquare);
+        }
       }
     }
 
@@ -705,6 +787,7 @@ function getLegalMovesForPiece(piece, pieces = gameState.pieces) {
       piece,
       fromSquare: piece.square,
       toSquare: move.square,
+      castle: move.castle || null,
     });
     return !isKingInCheck(piece.color, nextPieces);
   });
@@ -755,6 +838,7 @@ function getAllValidMoves(color, pieces = gameState.pieces) {
         fromSquare: piece.square,
         toSquare: move.square,
         moveType: move.type,
+        castle: move.castle || null,
       });
     }
   }
@@ -777,6 +861,7 @@ function getAllLegalMoves(color, pieces = gameState.pieces) {
         fromSquare: piece.square,
         toSquare: move.square,
         moveType: move.type,
+        castle: move.castle || null,
       });
     }
   }
@@ -824,11 +909,39 @@ function simulateMove(pieces, move) {
   }
 
   movingPiece.square = move.toSquare;
+  movingPiece.hasMoved = true;
+
+  if (move.castle?.rookFrom && move.castle?.rookTo) {
+    const rook = nextPieces.find(
+      (piece) =>
+        piece.square === move.castle.rookFrom &&
+        piece.color === movingPiece.color &&
+        piece.type === "rook",
+    );
+    if (rook) {
+      rook.square = move.castle.rookTo;
+      rook.hasMoved = true;
+    }
+  }
+
   return nextPieces;
 }
 
 function countAttacksOnSquare(square, attackerColor, pieces) {
-  return getAllValidMoves(attackerColor, pieces).filter((move) => move.toSquare === square).length;
+  let count = 0;
+
+  for (const piece of pieces) {
+    if (piece.color !== attackerColor) {
+      continue;
+    }
+
+    const attackSquares = getAttackSquaresForPiece(piece, pieces);
+    if (attackSquares.includes(square)) {
+      count += 1;
+    }
+  }
+
+  return count;
 }
 
 function scoreMove(move, level) {
@@ -899,7 +1012,7 @@ function chooseComputerMove() {
   return bestMove;
 }
 
-function performMove(fromSquare, toSquare) {
+function performMove(fromSquare, toSquare, moveData = null) {
   const movingPiece = getPieceAtSquare(fromSquare);
   if (!movingPiece) {
     return null;
@@ -912,11 +1025,23 @@ function performMove(fromSquare, toSquare) {
 
   gameState.pieces = gameState.pieces.filter((piece) => piece.square !== toSquare || piece === movingPiece);
   movingPiece.square = toSquare;
+  movingPiece.hasMoved = true;
+
+  let castledRook = null;
+  if (moveData?.castle?.rookFrom && moveData?.castle?.rookTo) {
+    castledRook = getPieceAtSquare(moveData.castle.rookFrom);
+    if (castledRook) {
+      castledRook.square = moveData.castle.rookTo;
+      castledRook.hasMoved = true;
+    }
+  }
+
   gameState.currentTurn = gameState.currentTurn === "white" ? "black" : "white";
   clearSelection();
   return {
     movingPiece,
     capturedPiece,
+    castledRook,
   };
 }
 
@@ -1126,17 +1251,18 @@ function buildAnimationClone(sourceElement, rect) {
   return clone;
 }
 
-function createImpactBurst(rect) {
+function createImpactBurst(rect, intensity = "move") {
   if (!rect) {
     return null;
   }
 
   const burst = document.createElement("div");
-  burst.className = "impact-burst";
+  burst.className = `impact-burst ${intensity}`;
   burst.style.left = `${rect.left + rect.width / 2}px`;
   burst.style.top = `${rect.top + rect.height / 2}px`;
-  burst.style.width = `${Math.max(rect.width * 0.52, 30)}px`;
-  burst.style.height = `${Math.max(rect.height * 0.52, 30)}px`;
+  const multiplier = intensity === "capture" ? 0.52 : 0.38;
+  burst.style.width = `${Math.max(rect.width * multiplier, 24)}px`;
+  burst.style.height = `${Math.max(rect.height * multiplier, 24)}px`;
   animationLayerElement.appendChild(burst);
   return burst;
 }
@@ -1162,25 +1288,41 @@ function animateMoveTransition(moveSnapshot) {
 
   const movingClone = buildAnimationClone(moveSnapshot.movingElement, moveSnapshot.fromRect);
   const incomingPiece = destinationElement;
+  const incomingRook = moveSnapshot.rookToSquare ? getRenderedPieceElement(moveSnapshot.rookToSquare) : null;
+  const incomingRookRect = incomingRook?.getBoundingClientRect();
 
   if (incomingPiece) {
     incomingPiece.classList.add("is-arriving-piece");
   }
+  if (incomingRook) {
+    incomingRook.classList.add("is-arriving-piece");
+  }
 
+  let rookClone = null;
   let captureClone = null;
-  let impactBurst = null;
+  let impactBurst = createImpactBurst(destinationRect, moveSnapshot.capturedElement ? "capture" : "move");
   if (moveSnapshot.capturedElement && moveSnapshot.captureRect) {
     captureClone = buildAnimationClone(moveSnapshot.capturedElement, moveSnapshot.captureRect);
     captureClone.classList.add("capture-fade");
-    impactBurst = createImpactBurst(destinationRect);
+  }
+
+  if (moveSnapshot.rookElement && moveSnapshot.rookRect && incomingRookRect) {
+    rookClone = buildAnimationClone(moveSnapshot.rookElement, moveSnapshot.rookRect);
   }
 
   runOnNextPaint(() => {
     const deltaX = destinationRect.left - moveSnapshot.fromRect.left;
     const deltaY = destinationRect.top - moveSnapshot.fromRect.top;
 
-    movingClone.style.transform = `translate(${deltaX}px, ${deltaY - 12}px) scale(1.08)`;
+    movingClone.style.transform = `translate(${deltaX}px, ${deltaY - 20}px) scale(1.14)`;
     movingClone.classList.add("move-lift");
+
+    if (rookClone && moveSnapshot.rookRect && incomingRookRect) {
+      const rookDeltaX = incomingRookRect.left - moveSnapshot.rookRect.left;
+      const rookDeltaY = incomingRookRect.top - moveSnapshot.rookRect.top;
+      rookClone.style.transform = `translate(${rookDeltaX}px, ${rookDeltaY - 12}px) scale(1.08)`;
+      rookClone.classList.add("move-lift", "rook-shift");
+    }
 
     if (captureClone) {
       captureClone.classList.add("is-capturing");
@@ -1193,6 +1335,9 @@ function animateMoveTransition(moveSnapshot) {
 
   window.setTimeout(() => {
     movingClone.remove();
+    if (rookClone) {
+      rookClone.remove();
+    }
     if (captureClone) {
       captureClone.remove();
     }
@@ -1201,6 +1346,9 @@ function animateMoveTransition(moveSnapshot) {
     }
     if (incomingPiece) {
       incomingPiece.classList.remove("is-arriving-piece");
+    }
+    if (incomingRook) {
+      incomingRook.classList.remove("is-arriving-piece");
     }
   }, gameConfig.moveAnimationDurationMs);
 }
@@ -1231,9 +1379,12 @@ function maybeRunComputerTurn() {
       fromRect: getRenderedPieceElement(computerMove.fromSquare)?.getBoundingClientRect(),
       capturedElement: getRenderedPieceElement(computerMove.toSquare),
       captureRect: getRenderedPieceElement(computerMove.toSquare)?.getBoundingClientRect(),
+      rookToSquare: computerMove.castle?.rookTo || null,
+      rookElement: computerMove.castle?.rookFrom ? getRenderedPieceElement(computerMove.castle.rookFrom) : null,
+      rookRect: computerMove.castle?.rookFrom ? getRenderedPieceElement(computerMove.castle.rookFrom)?.getBoundingClientRect() : null,
     };
 
-    const moveResult = performMove(computerMove.fromSquare, computerMove.toSquare);
+    const moveResult = performMove(computerMove.fromSquare, computerMove.toSquare, computerMove);
     if (moveResult?.capturedPiece?.type === "king") {
       endGameWithWinner("black");
       renderBoard();
@@ -1265,9 +1416,12 @@ function handleSquareClick(squareName) {
       fromRect: getRenderedPieceElement(gameState.selectedPiece.square)?.getBoundingClientRect(),
       capturedElement: getRenderedPieceElement(squareName),
       captureRect: getRenderedPieceElement(squareName)?.getBoundingClientRect(),
+      rookToSquare: validMove.castle?.rookTo || null,
+      rookElement: validMove.castle?.rookFrom ? getRenderedPieceElement(validMove.castle.rookFrom) : null,
+      rookRect: validMove.castle?.rookFrom ? getRenderedPieceElement(validMove.castle.rookFrom)?.getBoundingClientRect() : null,
     };
 
-    const moveResult = performMove(gameState.selectedPiece.square, squareName);
+    const moveResult = performMove(gameState.selectedPiece.square, squareName, validMove);
     if (moveResult?.capturedPiece?.type === "king") {
       endGameWithWinner(moveResult.movingPiece.color);
       renderBoard();
