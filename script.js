@@ -55,6 +55,7 @@ const pieceSymbols = {
 const gameConfig = {
   pieceAssetExtensions: ["png"],
   aiMoveDelayMs: 500,
+  moveAnimationDurationMs: 540,
   soundAssets: {
     move: "assets/audio/move.mp3",
     capture: "assets/audio/capture.mp3",
@@ -1013,7 +1014,7 @@ function animateMoveTransition(moveSnapshot) {
     if (incomingPiece) {
       incomingPiece.classList.remove("is-arriving-piece");
     }
-  }, 280);
+  }, gameConfig.moveAnimationDurationMs);
 }
 
 function maybeRunComputerTurn() {

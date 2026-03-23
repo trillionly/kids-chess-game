@@ -1134,7 +1134,7 @@ button {
   opacity: 0.72;
   transform: scale(1);
   transform-origin: center;
-  transition: transform 250ms ease, opacity 250ms ease, filter 250ms ease;
+  transition: transform 540ms ease, opacity 540ms ease, filter 540ms ease;
   pointer-events: none;
   z-index: 0;
 }
@@ -1220,7 +1220,7 @@ button {
   filter: drop-shadow(0 8px 10px rgba(10, 8, 14, 0.16));
   transform: scale(1.12);
   transform-origin: center;
-  transition: transform 250ms ease, filter 250ms ease;
+  transition: transform 540ms ease, filter 540ms ease;
 }
 
 .piece.image-piece:hover .piece-img,
@@ -1270,9 +1270,9 @@ button {
   position: fixed;
   transform-origin: center center;
   transition:
-    transform 250ms ease,
-    opacity 200ms ease,
-    filter 250ms ease;
+    transform 540ms ease,
+    opacity 260ms ease,
+    filter 540ms ease;
   will-change: transform, opacity;
 }
 
