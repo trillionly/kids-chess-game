@@ -34,7 +34,7 @@
   --start-card-padding-x: clamp(1.2rem, 3vw, 2rem);
   --start-card-padding-top: clamp(1.26rem, 2.52vw, 1.8rem);
   --start-card-padding-bottom: clamp(1.44rem, 2.7vw, 2.07rem);
-  --start-card-offset-y: 30px;
+  --start-card-offset-y: -20px;
   --start-content-offset-y: -30px;
   --start-side-width: 1fr;
   --start-hero-gap: clamp(0.9rem, 2.2vw, 1.3rem);
