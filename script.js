@@ -55,7 +55,7 @@ const pieceSymbols = {
 const gameConfig = {
   pieceAssetExtensions: ["png"],
   aiMoveDelayMs: 500,
-  moveAnimationDurationMs: 540,
+  moveAnimationDurationMs: 920,
   soundAssets: {
     move: "assets/audio/move.mp3",
     capture: "assets/audio/capture.mp3",
@@ -1141,6 +1141,12 @@ function createImpactBurst(rect) {
   return burst;
 }
 
+function runOnNextPaint(callback) {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(callback);
+  });
+}
+
 function animateMoveTransition(moveSnapshot) {
   if (!moveSnapshot || !moveSnapshot.movingElement || !moveSnapshot.fromRect) {
     return;
@@ -1169,7 +1175,7 @@ function animateMoveTransition(moveSnapshot) {
     impactBurst = createImpactBurst(destinationRect);
   }
 
-  requestAnimationFrame(() => {
+  runOnNextPaint(() => {
     const deltaX = destinationRect.left - moveSnapshot.fromRect.left;
     const deltaY = destinationRect.top - moveSnapshot.fromRect.top;
 
