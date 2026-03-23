@@ -32,9 +32,9 @@
   --shadow-strong: 0 28px 80px rgba(3, 2, 8, 0.54);
   --start-card-max-width: 760px;
   --start-card-padding-x: clamp(1.2rem, 3vw, 2rem);
-  --start-card-padding-top: clamp(1.4rem, 2.8vw, 2rem);
-  --start-card-padding-bottom: clamp(1.6rem, 3vw, 2.3rem);
-  --start-card-offset-y: 0px;
+  --start-card-padding-top: clamp(1.26rem, 2.52vw, 1.8rem);
+  --start-card-padding-bottom: clamp(1.44rem, 2.7vw, 2.07rem);
+  --start-card-offset-y: 30px;
   --start-content-offset-y: 0px;
   --start-side-width: 1fr;
   --start-hero-gap: clamp(0.9rem, 2.2vw, 1.3rem);
@@ -167,7 +167,7 @@ button {
 }
 
 .start-screen.single-mode-active .start-card {
-  transform: translateY(-12px);
+  transform: translateY(var(--start-card-offset-y));
 }
 
 .start-screen.single-mode-active .start-hero {
