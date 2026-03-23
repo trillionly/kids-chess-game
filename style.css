@@ -128,7 +128,7 @@ button {
   width: 100%;
   min-height: 100vh;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   padding: clamp(2rem, 5vh, 3.25rem) 1rem 1.25rem;
   background:
@@ -1453,7 +1453,7 @@ button {
   color: #fff1d9;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 560px) {
   .app {
     align-items: flex-start;
     padding: 1rem;
