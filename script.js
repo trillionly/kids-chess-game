@@ -1132,21 +1132,23 @@ function chooseComputerMove() {
     return null;
   }
 
-  if (gameState.level === 1) {
+  const aiLevel = Math.max(1, (gameState.level || 1) - 1);
+
+  if (aiLevel === 1) {
     return allMoves[Math.floor(Math.random() * allMoves.length)];
   }
 
-  if (gameState.level === 2) {
+  if (aiLevel === 2) {
     const captureMoves = allMoves.filter((move) => move.moveType === "capture");
     const movePool = captureMoves.length > 0 ? captureMoves : allMoves;
     return movePool[Math.floor(Math.random() * movePool.length)];
   }
 
   let bestMove = allMoves[0];
-  let bestScore = scoreMove(bestMove, gameState.level);
+  let bestScore = scoreMove(bestMove, aiLevel);
 
   for (const move of allMoves.slice(1)) {
-    const score = scoreMove(move, gameState.level);
+    const score = scoreMove(move, aiLevel);
     if (score > bestScore) {
       bestScore = score;
       bestMove = move;
