@@ -85,6 +85,8 @@ const soundState = {
 const interactionState = {
   characterTimers: new WeakMap(),
   touchStartY: null,
+  touchLatestY: null,
+  pullRefreshHandled: false,
 };
 
 const gameState = {
@@ -1828,11 +1830,19 @@ function triggerStartCharacterInteraction(element) {
 
 function attachSetupEvents() {
   const unlockAudio = () => unlockAudioContext();
+  const resetPullRefreshState = () => {
+    interactionState.touchStartY = null;
+    interactionState.touchLatestY = null;
+    interactionState.pullRefreshHandled = false;
+  };
+
   window.addEventListener("pointerdown", unlockAudio, { passive: true });
   window.addEventListener("keydown", unlockAudio);
   window.addEventListener("touchstart", (event) => {
     if (event.touches.length === 1) {
       interactionState.touchStartY = event.touches[0].clientY;
+      interactionState.touchLatestY = event.touches[0].clientY;
+      interactionState.pullRefreshHandled = false;
     }
   }, { passive: true });
   window.addEventListener("touchmove", (event) => {
@@ -1841,17 +1851,32 @@ function attachSetupEvents() {
     }
 
     const currentY = event.touches[0].clientY;
+    interactionState.touchLatestY = currentY;
     const isPullingDown = currentY > interactionState.touchStartY;
     if (isPullingDown && window.scrollY <= 0) {
       event.preventDefault();
     }
   }, { passive: false });
   window.addEventListener("touchend", () => {
-    interactionState.touchStartY = null;
+    if (
+      interactionState.touchStartY !== null &&
+      interactionState.touchLatestY !== null &&
+      !interactionState.pullRefreshHandled &&
+      window.scrollY <= 0
+    ) {
+      const pullDistance = interactionState.touchLatestY - interactionState.touchStartY;
+      if (pullDistance >= 80) {
+        interactionState.pullRefreshHandled = true;
+        const shouldReload = window.confirm("새로고침하시겠습니까?");
+        if (shouldReload) {
+          window.location.reload();
+        }
+      }
+    }
+
+    resetPullRefreshState();
   }, { passive: true });
-  window.addEventListener("touchcancel", () => {
-    interactionState.touchStartY = null;
-  }, { passive: true });
+  window.addEventListener("touchcancel", resetPullRefreshState, { passive: true });
 
   for (const character of startCharacterElements) {
     character.addEventListener("pointerenter", () => triggerStartCharacterInteraction(character));
