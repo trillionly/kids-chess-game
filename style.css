@@ -1248,9 +1248,39 @@ button {
   filter: drop-shadow(0 16px 20px rgba(10, 8, 14, 0.28));
 }
 
+.piece.rotated-piece .piece-img,
+.piece.rotated-piece .piece-image {
+  transform: rotate(180deg) scale(1.12);
+}
+
 .piece.image-piece:not(.pawn).selected .piece-img,
 .piece.image-piece:not(.pawn).selected .piece-image {
   transform: scale(1.281);
+}
+
+.piece.rotated-piece.image-piece:hover .piece-img,
+.piece.rotated-piece.image-piece:hover .piece-image {
+  transform: rotate(180deg) scale(1.17);
+}
+
+.piece.rotated-piece.image-piece:not(.pawn) .piece-img,
+.piece.rotated-piece.image-piece:not(.pawn) .piece-image {
+  transform: rotate(180deg) scale(1.176);
+}
+
+.piece.rotated-piece.image-piece:not(.pawn):hover .piece-img,
+.piece.rotated-piece.image-piece:not(.pawn):hover .piece-image {
+  transform: rotate(180deg) scale(1.228);
+}
+
+.piece.rotated-piece.image-piece.selected .piece-img,
+.piece.rotated-piece.image-piece.selected .piece-image {
+  transform: rotate(180deg) scale(1.22);
+}
+
+.piece.rotated-piece.image-piece:not(.pawn).selected .piece-img,
+.piece.rotated-piece.image-piece:not(.pawn).selected .piece-image {
+  transform: rotate(180deg) scale(1.281);
 }
 
 .piece.is-arriving-piece {

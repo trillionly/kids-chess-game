@@ -1731,6 +1731,9 @@ function createPieceElement(piece) {
 
   if (visualState.useImage) {
     button.classList.add("image-piece");
+    if (gameState.mode === "two" && piece.color === "black") {
+      button.classList.add("rotated-piece");
+    }
     const image = document.createElement("img");
     image.className = "piece-img";
     image.src = visualState.assetPath;
