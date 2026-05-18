@@ -1134,7 +1134,7 @@ function chooseComputerMove() {
     return null;
   }
 
-  const aiLevel = Math.max(1, (gameState.level || 1) - 1);
+  const aiLevel = Math.min(10, Math.max(1, gameState.level || 1));
 
   if (aiLevel === 1) {
     return allMoves[Math.floor(Math.random() * allMoves.length)];
