@@ -980,23 +980,6 @@ function simulateMove(pieces, move) {
   return nextPieces;
 }
 
-function countAttacksOnSquare(square, attackerColor, pieces) {
-  let count = 0;
-
-  for (const piece of pieces) {
-    if (piece.color !== attackerColor) {
-      continue;
-    }
-
-    const attackSquares = getAttackSquaresForPiece(piece, pieces);
-    if (attackSquares.includes(square)) {
-      count += 1;
-    }
-  }
-
-  return count;
-}
-
 function getPieceValue(type) {
   switch (type) {
     case "pawn":
@@ -1015,120 +998,108 @@ function getPieceValue(type) {
   }
 }
 
-function evaluateMaterialBalance(pieces) {
-  return pieces.reduce((total, piece) => {
-    const value = getPieceValue(piece.type);
-    return total + (piece.color === "black" ? value : -value);
-  }, 0);
-}
-
 function getMoveTargetPiece(move, pieces = gameState.pieces) {
   return pieces.find((piece) => piece.square === move.toSquare && piece.color !== move.piece.color) || null;
 }
 
-function getBestReplyPressureForWhite(piecesAfterBlackMove) {
-  const whiteMoves = getAllLegalMoves("white", piecesAfterBlackMove);
-  if (whiteMoves.length === 0) {
-    return 0;
-  }
-
-  let bestReply = -Infinity;
-  for (const move of whiteMoves) {
-    const targetPiece = getMoveTargetPiece(move, piecesAfterBlackMove);
-    const nextPieces = simulateMove(piecesAfterBlackMove, move);
-    let replyScore = targetPiece ? getPieceValue(targetPiece.type) * 5 : 0;
-    if (isKingInCheck("black", nextPieces)) {
-      replyScore += 7;
+function evaluateComputerPosition(pieces) {
+  let score = 0;
+  const endgame = pieces.filter((piece) => piece.type !== "pawn" && piece.type !== "king").length <= 4;
+  for (const piece of pieces) {
+    const { file, rank } = squareToPosition(piece.square);
+    const progress = piece.color === "white" ? rank : 7 - rank;
+    const center = 7 - Math.abs(file - 3.5) - Math.abs(rank - 3.5);
+    let value = piece.type === "king" ? 0 : getPieceValue(piece.type) * 100;
+    if (piece.type === "pawn") value += progress * 9 + center * 3;
+    if (piece.type === "knight") value += center * 12;
+    if (piece.type === "bishop") value += center * 7 + (piece.hasMoved ? 12 : 0);
+    if (piece.type === "rook") value += progress === 6 ? 22 : 0;
+    if (piece.type === "queen") value += center * 3;
+    if (piece.type === "king") {
+      value += endgame ? center * 12 : -center * 8;
+      if (!endgame && progress <= 1 && (file <= 2 || file >= 6)) value += 35;
     }
-    bestReply = Math.max(bestReply, replyScore);
+    score += piece.color === "black" ? value : -value;
   }
-
-  return bestReply === -Infinity ? 0 : bestReply;
-}
-
-function scoreMove(move, level) {
-  let score = Math.random() * 0.2;
-  const nextPieces = simulateMove(gameState.pieces, move);
-  const targetPiece = getMoveTargetPiece(move, gameState.pieces);
-  const blackInCheckAfterMove = isKingInCheck("black", nextPieces);
-  const whiteInCheckAfterMove = isKingInCheck("white", nextPieces);
-  const whiteTurnState = evaluateTurnState("white", nextPieces);
-
-  if (move.moveType === "capture") {
-    score += 20;
-  }
-
-  if (move.piece.type === "pawn") {
-    const destination = squareToPosition(move.toSquare);
-    score += move.piece.color === "black" ? 7 - destination.rank : destination.rank;
-  }
-
-  if (move.piece.type === "knight") {
-    score += 1.2;
-  }
-
-  if (level >= 3) {
-    const danger = countAttacksOnSquare(move.toSquare, "white", nextPieces);
-    score -= danger * 8;
-    if (move.moveType === "capture" && danger === 0) {
-      score += 6;
-    }
-  }
-
-  if (level >= 4) {
-    score += move.piece.type === "rook" ? 1.6 : 0;
-    score += move.moveType === "capture" ? 4 : 0;
-  }
-
-  if (level >= 5) {
-    const destination = squareToPosition(move.toSquare);
-    score += (3.5 - Math.abs(3.5 - destination.file)) * 0.7;
-  }
-
-  if (level >= 6) {
-    score += evaluateMaterialBalance(nextPieces) * 1.8;
-    if (targetPiece) {
-      score += getPieceValue(targetPiece.type) * 5.5;
-    }
-    if (move.castle) {
-      score += 8;
-    }
-  }
-
-  if (level >= 7) {
-    if (whiteInCheckAfterMove) {
-      score += 14;
-    }
-    if (whiteTurnState.checkmate) {
-      score += 1000;
-    }
-    if (blackInCheckAfterMove) {
-      score -= 40;
-    }
-  }
-
-  if (level >= 8) {
-    const bestWhiteReply = getBestReplyPressureForWhite(nextPieces);
-    score -= bestWhiteReply * 1.6;
-  }
-
-  if (level >= 9) {
-    const destinationPressure = countAttacksOnSquare(move.toSquare, "white", nextPieces);
-    const defenders = countAttacksOnSquare(move.toSquare, "black", nextPieces);
-    score -= destinationPressure * (getPieceValue(move.piece.type) + 2.5);
-    score += defenders * 1.2;
-  }
-
-  if (level >= 10) {
-    const whiteLegalMoves = getAllLegalMoves("white", nextPieces).length;
-    score -= whiteLegalMoves * 0.22;
-    score += evaluateMaterialBalance(nextPieces) * 1.2;
-  }
-
   return score;
 }
 
-function chooseComputerMove() {
+function simulateComputerMove(pieces, move) {
+  const nextPieces = simulateMove(pieces, move);
+  const moved = nextPieces.find((piece) => piece.square === move.toSquare && piece.color === move.piece.color);
+  if (moved?.type === "pawn" && /[18]$/.test(moved.square)) moved.type = "queen";
+  return nextPieces;
+}
+
+function orderComputerMoves(moves, pieces) {
+  const priority = (move) => {
+    const target = getMoveTargetPiece(move, pieces);
+    const promotion = move.piece.type === "pawn" && /[18]$/.test(move.toSquare);
+    return (target ? getPieceValue(target.type) * 100 - getPieceValue(move.piece.type) : 0)
+      + (promotion ? 800 : 0) + (move.castle ? 30 : 0);
+  };
+  return moves.map((move) => ({ move, priority: priority(move) }))
+    .sort((a, b) => b.priority - a.priority).map((entry) => entry.move);
+}
+
+// Yield at each node so search can be interrupted and the board stays responsive.
+function* searchComputerPosition(pieces, color, depth, alpha, beta, ply = 1, exchanges = 2) {
+  yield;
+  const moves = getAllLegalMoves(color, pieces);
+  const inCheck = isKingInCheck(color, pieces);
+  if (moves.length === 0) return inCheck ? (color === "black" ? -100000 + ply : 100000 - ply) : 0;
+  const maximizing = color === "black";
+  let best = maximizing ? -Infinity : Infinity;
+  let candidates = moves;
+  if (depth <= 0) {
+    const standing = evaluateComputerPosition(pieces);
+    if (exchanges <= 0) return standing;
+    if (!inCheck) {
+      best = standing;
+      if (maximizing) alpha = Math.max(alpha, best);
+      else beta = Math.min(beta, best);
+      if (alpha >= beta) return best;
+      candidates = moves.filter((move) => move.moveType === "capture"
+        || (move.piece.type === "pawn" && /[18]$/.test(move.toSquare)));
+    }
+  }
+  for (const move of orderComputerMoves(candidates, pieces)) {
+    const value = yield* searchComputerPosition(simulateComputerMove(pieces, move),
+      maximizing ? "white" : "black", depth - 1, alpha, beta, ply + 1,
+      depth <= 0 ? exchanges - 1 : exchanges);
+    best = maximizing ? Math.max(best, value) : Math.min(best, value);
+    if (maximizing) alpha = Math.max(alpha, best);
+    else beta = Math.min(beta, best);
+    if (alpha >= beta) break;
+  }
+  return best;
+}
+
+function* scoreComputerCandidates(pieces, moves, depth) {
+  const scores = [];
+  for (const move of moves) {
+    const score = yield* searchComputerPosition(simulateComputerMove(pieces, move), "white", depth - 1, -Infinity, Infinity);
+    scores.push({ move, score });
+  }
+  return scores;
+}
+
+function selectComputerCandidate(scoredMoves, level, random = Math.random) {
+  const best = Math.max(...scoredMoves.map((entry) => entry.score));
+  // The tolerance narrows smoothly, rather than switching strategy at a level boundary.
+  const tolerance = 180 - (level - 1) * 18;
+  const candidates = scoredMoves.filter((entry) => best - entry.score <= tolerance);
+  const weights = candidates.map((entry) => Math.exp((entry.score - best) / (tolerance * 0.6)));
+  let ticket = random() * weights.reduce((sum, weight) => sum + weight, 0);
+  for (let index = 0; index < candidates.length; index += 1) {
+    ticket -= weights[index];
+    if (ticket <= 0) return candidates[index].move;
+  }
+  return candidates[candidates.length - 1].move;
+}
+
+async function chooseComputerMove() {
+  const pieces = gameState.pieces;
   const allMoves = getAllLegalMoves("black");
   if (allMoves.length === 0) {
     return null;
@@ -1136,28 +1107,26 @@ function chooseComputerMove() {
 
   const aiLevel = Math.min(10, Math.max(1, gameState.level || 1));
 
-  if (aiLevel === 1) {
-    return allMoves[Math.floor(Math.random() * allMoves.length)];
-  }
-
-  if (aiLevel === 2) {
-    const captureMoves = allMoves.filter((move) => move.moveType === "capture");
-    const movePool = captureMoves.length > 0 ? captureMoves : allMoves;
-    return movePool[Math.floor(Math.random() * movePool.length)];
-  }
-
-  let bestMove = allMoves[0];
-  let bestScore = scoreMove(bestMove, aiLevel);
-
-  for (const move of allMoves.slice(1)) {
-    const score = scoreMove(move, aiLevel);
-    if (score > bestScore) {
-      bestScore = score;
-      bestMove = move;
+  const moves = orderComputerMoves(allMoves, pieces);
+  let scoredMoves = moves.map((move) => ({ move, score: evaluateComputerPosition(simulateComputerMove(pieces, move)) }));
+  const deadline = performance.now() + 250 + (aiLevel - 1) * 55;
+  for (let depth = 1; depth <= 4; depth += 1) {
+    const search = scoreComputerCandidates(pieces, moves, depth);
+    let result;
+    while (performance.now() < deadline) {
+      const sliceEnd = Math.min(deadline, performance.now() + 8);
+      do {
+        result = search.next();
+      } while (!result.done && performance.now() < sliceEnd);
+      if (result.done) break;
+      await new Promise((resolve) => window.setTimeout(resolve, 0));
+      if (gameState.pieces !== pieces || gameState.isGameOver || gameState.screen !== "game") return null;
     }
+    // Never mix partially searched roots with scores from a completed depth.
+    if (!result?.done) break;
+    scoredMoves = result.value;
   }
-
-  return bestMove;
+  return selectComputerCandidate(scoredMoves, aiLevel);
 }
 
 function performMove(fromSquare, toSquare, moveData = null) {
@@ -1509,10 +1478,12 @@ function maybeRunComputerTurn() {
   gameState.isComputerThinking = true;
   renderBoard();
 
-  gameState.aiTimerId = window.setTimeout(() => {
-    const computerMove = chooseComputerMove();
-    gameState.isComputerThinking = false;
+  gameState.aiTimerId = window.setTimeout(async () => {
     gameState.aiTimerId = null;
+    const piecesBeforeSearch = gameState.pieces;
+    const computerMove = await chooseComputerMove();
+    if (gameState.pieces !== piecesBeforeSearch || gameState.screen !== "game" || gameState.isGameOver) return;
+    gameState.isComputerThinking = false;
 
     if (!computerMove) {
       updateThreatState(false);
