@@ -1194,19 +1194,34 @@ function* searchComputerPosition(pieces, color, depth, alpha, beta, ply = 1, exc
   return best;
 }
 
-function* scoreComputerCandidates(pieces, moves, depth) {
+function* scoreComputerCandidates(pieces, moves, depth, exchanges = 2) {
   const scores = [];
   for (const move of moves) {
-    const score = yield* searchComputerPosition(simulateComputerMove(pieces, move), "white", depth - 1, -Infinity, Infinity);
+    const score = yield* searchComputerPosition(simulateComputerMove(pieces, move), "white", depth - 1, -Infinity, Infinity, 1, exchanges);
     scores.push({ move, score });
   }
   return scores;
 }
 
+function getComputerDifficulty(level) {
+  const boundedLevel = Math.min(10, Math.max(1, level || 1));
+  return {
+    randomMoveChance: 0.85 * (10 - boundedLevel) / 9,
+    tolerance: 400 - (boundedLevel - 1) * 40,
+    budgetMs: 100 + (boundedLevel - 1) * 65,
+    maxDepth: Math.ceil(boundedLevel / 3),
+    exchanges: boundedLevel <= 3 ? 0 : boundedLevel <= 6 ? 1 : 2,
+  };
+}
+
 function selectComputerCandidate(scoredMoves, level, random = Math.random) {
   const best = Math.max(...scoredMoves.map((entry) => entry.score));
-  // The tolerance narrows smoothly, rather than switching strategy at a level boundary.
-  const tolerance = 180 - (level - 1) * 18;
+  const { randomMoveChance, tolerance } = getComputerDifficulty(level);
+  // Beginner play must allow real mistakes, not just near-optimal variations.
+  // Keep a discovered mate, but otherwise permit moves outside the strong pool.
+  if (best < 90000 && randomMoveChance > 0 && random() < randomMoveChance) {
+    return scoredMoves[Math.min(scoredMoves.length - 1, Math.floor(random() * scoredMoves.length))].move;
+  }
   const candidates = scoredMoves.filter((entry) => best - entry.score <= tolerance);
   const weights = candidates.map((entry) => Math.exp((entry.score - best) / (tolerance * 0.6)));
   let ticket = random() * weights.reduce((sum, weight) => sum + weight, 0);
@@ -1225,12 +1240,13 @@ async function chooseComputerMove() {
   }
 
   const aiLevel = Math.min(10, Math.max(1, gameState.level || 1));
+  const difficulty = getComputerDifficulty(aiLevel);
 
   const moves = orderComputerMoves(allMoves, pieces);
   let scoredMoves = moves.map((move) => ({ move, score: evaluateComputerPosition(simulateComputerMove(pieces, move)) }));
-  const deadline = performance.now() + 250 + (aiLevel - 1) * 55;
-  for (let depth = 1; depth <= 4; depth += 1) {
-    const search = scoreComputerCandidates(pieces, moves, depth);
+  const deadline = performance.now() + difficulty.budgetMs;
+  for (let depth = 1; depth <= difficulty.maxDepth; depth += 1) {
+    const search = scoreComputerCandidates(pieces, moves, depth, difficulty.exchanges);
     let result;
     while (performance.now() < deadline) {
       const sliceEnd = Math.min(deadline, performance.now() + 8);

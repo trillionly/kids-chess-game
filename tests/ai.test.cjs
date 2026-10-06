@@ -47,7 +47,9 @@ test("search rejects a pawn capture that loses the queen to a rook", () => {
   assert.ok(poisoned);
   assert.ok(Math.max(...results.map((entry) => entry.score)) - poisoned.score > 180);
   ai.context.scored = results;
-  assert.notEqual(ai.run('selectComputerCandidate(scored, 1, () => 0.5).toSquare'), "d4");
+  assert.notEqual(ai.run('selectComputerCandidate(scored, 10, () => 0.5).toSquare'), "d4");
+  ai.context.badIndex = results.indexOf(poisoned);
+  assert.equal(ai.run('(() => { const choices = [0, (badIndex + 0.5) / scored.length]; return selectComputerCandidate(scored, 1, () => choices.shift()).toSquare; })()'), "d4");
 });
 
 test("search models promotion without mutating the board", () => {
@@ -60,15 +62,41 @@ test("search models promotion without mutating the board", () => {
   assert.equal(JSON.stringify(position), before);
 });
 
-test("candidate tolerance shrinks gradually and never admits a major blunder", () => {
+test("evaluated choices improve gradually when the random-move branch is not taken", () => {
   const ai = engine();
   ai.context.scored = [0, -40, -80, -120, -160, -300].map((score) => ({ score, move: { score } }));
   let previous = -Infinity;
   for (let level = 1; level <= 10; level += 1) {
     const selected = ai.run(`selectComputerCandidate(scored, ${level}, () => 0.99999).score`);
     assert.ok(selected >= previous);
-    assert.ok(selected > -300);
     previous = selected;
+  }
+  assert.ok(previous >= -40);
+});
+
+test("beginner choices are weaker on average and improve across all ten levels", () => {
+  const ai = engine();
+  ai.context.scored = [0, -100, -300, -500, -900].map((score) => ({ score, move: { score } }));
+  const averages = ai.run(`
+    (() => {
+      let seed = 123456;
+      const random = () => {
+        seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+        return seed / 4294967296;
+      };
+      return Array.from({ length: 10 }, (_, index) => {
+        let total = 0;
+        for (let trial = 0; trial < 4000; trial += 1) {
+          total += selectComputerCandidate(scored, index + 1, random).score;
+        }
+        return total / 4000;
+      });
+    })()
+  `);
+  assert.ok(averages[0] < -280, "Level 1 must allow material-losing mistakes");
+  assert.equal(averages[9], 0, "Level 10 must avoid obvious losing choices");
+  for (let index = 1; index < averages.length; index += 1) {
+    assert.ok(averages[index] > averages[index - 1], JSON.stringify(averages));
   }
 });
 

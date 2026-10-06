@@ -8,11 +8,16 @@ plus two extra plies for captures and check evasions. Evaluation considers mater
 development, central squares, king placement, and automatic queen promotion.
 Search yields between short batches so a new game can cancel pending calculations.
 
-Levels 1-10 share this engine. Each step adds 55 ms to the search budget
-(250-745 ms) and reduces the allowed score loss by 18 centipawns (180-18).
-Moves within that allowance are weighted toward the best score. These settings
-give gradual strength changes, not measured Elo ratings. Actual search depth depends
-on the position and device. The engine uses the game's existing move rules.
+Levels 1-10 share this engine with beginner-friendly strength settings. Level 1
+chooses a random legal move 85% of the time; that probability decreases by about
+9.4 percentage points per level to 0% at level 10. Discovered mates are retained.
+Evaluated choices allow 400-40 centipawns of score loss, narrowing by 40 per level.
+Each step adds 65 ms to the search budget (100-685 ms). Levels 1-3 search one ply
+with no extra capture search, levels 4-6 up to two with one extra capture ply,
+levels 7-9 up to three with two extra capture plies, and level 10 up to four.
+These settings provide gradual average strength changes, not measured Elo ratings
+or a guaranteed win rate. Actual search depth depends on the position and device.
+The engine uses the game's existing move rules.
 
 Draws end the game automatically for stalemate, insufficient mating material,
 threefold repetition, and 50 moves per side without a pawn move or capture.
