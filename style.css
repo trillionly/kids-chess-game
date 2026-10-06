@@ -1538,6 +1538,28 @@ button {
     padding: 0.7rem;
   }
 
+  .victory-card {
+    grid-template-columns: 48px minmax(0, 1fr) 48px;
+    gap: 0.35rem;
+    padding: 0.8rem 0.5rem;
+  }
+
+  .victory-piece-slot,
+  .victory-piece {
+    width: 48px;
+    height: 72px;
+  }
+
+  .victory-text h2 {
+    font-size: 1.5rem;
+  }
+
+  .victory-text p {
+    font-size: 0.85rem;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
   .board-shell {
     width: 100%;
   }
