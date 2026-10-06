@@ -11,6 +11,7 @@ const turnPillElement = document.getElementById("turn-pill");
 const guideToggleButton = document.getElementById("guide-toggle-button");
 const guideDisplayElement = document.getElementById("guide-display");
 const newGameButton = document.getElementById("new-game-button");
+const drawButton = document.getElementById("draw-button");
 const animationLayerElement = document.getElementById("animation-layer");
 const boardFrameElement = document.getElementById("board-frame");
 const capturedWhiteElement = document.getElementById("captured-white");
@@ -104,6 +105,10 @@ const gameState = {
   winner: null,
   isGameOver: false,
   isStalemate: false,
+  drawReason: null,
+  halfmoveClock: 0,
+  positionCounts: new Map(),
+  needsPositionRecord: false,
   pendingPromotion: null,
   isComputerThinking: false,
   aiTimerId: null,
@@ -176,6 +181,10 @@ function resetBoardState() {
   gameState.winner = null;
   gameState.isGameOver = false;
   gameState.isStalemate = false;
+  gameState.drawReason = null;
+  gameState.halfmoveClock = 0;
+  gameState.positionCounts = new Map();
+  gameState.needsPositionRecord = false;
   gameState.pendingPromotion = null;
   gameState.isComputerThinking = false;
   gameState.checkState = {
@@ -184,6 +193,7 @@ function resetBoardState() {
     checkmate: false,
     stalemate: false,
   };
+  recordDrawPosition();
 }
 
 function startGame() {
@@ -563,6 +573,12 @@ function getPawnMoves(piece, pieceMap) {
     if (captureSquare && targetPiece && targetPiece.color !== piece.color) {
       moves.push({ square: captureSquare, type: "capture" });
     }
+    const adjacentSquare = positionToSquare(file + fileOffset, rank);
+    const adjacentPawn = pieceMap.get(adjacentSquare);
+    if (captureSquare && !targetPiece && rank === (piece.color === "white" ? 4 : 3)
+      && adjacentPawn?.type === "pawn" && adjacentPawn.color !== piece.color && adjacentPawn.enPassantVulnerable) {
+      moves.push({ square: captureSquare, type: "capture", enPassant: adjacentSquare });
+    }
   }
 
   return moves;
@@ -836,18 +852,20 @@ function getLegalMovesForPiece(piece, pieces = gameState.pieces) {
   const pseudoMoves = getPseudoLegalMovesForPiece(piece, pieces);
 
   return pseudoMoves.filter((move) => {
+    if (pieces.some((target) => target.square === move.square && target.type === "king")) return false;
     const nextPieces = simulateMove(pieces, {
       piece,
       fromSquare: piece.square,
       toSquare: move.square,
       castle: move.castle || null,
+      enPassant: move.enPassant || null,
     });
     return !isKingInCheck(piece.color, nextPieces);
   });
 }
 
 function getValidMovesForPiece(piece, pieces = gameState.pieces) {
-  return getPseudoLegalMovesForPiece(piece, pieces);
+  return getLegalMovesForPiece(piece, pieces);
 }
 
 function clearSelection() {
@@ -892,6 +910,7 @@ function getAllValidMoves(color, pieces = gameState.pieces) {
         toSquare: move.square,
         moveType: move.type,
         castle: move.castle || null,
+        enPassant: move.enPassant || null,
       });
     }
   }
@@ -915,6 +934,7 @@ function getAllLegalMoves(color, pieces = gameState.pieces) {
         toSquare: move.square,
         moveType: move.type,
         castle: move.castle || null,
+        enPassant: move.enPassant || null,
       });
     }
   }
@@ -954,13 +974,16 @@ function simulateMove(pieces, move) {
   }
 
   const capturedIndex = nextPieces.findIndex(
-    (piece) => piece.square === move.toSquare && piece !== movingPiece,
+    (piece) => piece.square === (move.enPassant || move.toSquare) && piece !== movingPiece,
   );
 
   if (capturedIndex >= 0) {
     nextPieces.splice(capturedIndex, 1);
   }
 
+  for (const piece of nextPieces) piece.enPassantVulnerable = false;
+  movingPiece.enPassantVulnerable = movingPiece.type === "pawn"
+    && Math.abs(squareToPosition(move.fromSquare).rank - squareToPosition(move.toSquare).rank) === 2;
   movingPiece.square = move.toSquare;
   movingPiece.hasMoved = true;
 
@@ -999,7 +1022,102 @@ function getPieceValue(type) {
 }
 
 function getMoveTargetPiece(move, pieces = gameState.pieces) {
-  return pieces.find((piece) => piece.square === move.toSquare && piece.color !== move.piece.color) || null;
+  return pieces.find((piece) => piece.square === (move.enPassant || move.toSquare) && piece.color !== move.piece.color) || null;
+}
+
+const drawMessages = {
+  stalemate: "Stalemate: no legal moves and no check.",
+  material: "Neither side has enough pieces to checkmate.",
+  deadPosition: "The locked position makes checkmate impossible.",
+  repetition: "The same position has occurred three times.",
+  fivefold: "The same position has occurred five times.",
+  fiftyMoves: "50 moves each without a pawn move or capture.",
+  seventyFiveMoves: "75 moves each without a pawn move or capture.",
+  agreement: "Both players agreed to a draw.",
+};
+
+function hasInsufficientMaterial(pieces) {
+  if (!findKing("white", pieces) || !findKing("black", pieces)) return false;
+  const others = pieces.filter((piece) => piece.type !== "king");
+  if (others.length === 0) return true;
+  if (others.length === 1) return ["bishop", "knight"].includes(others[0].type);
+  if (!others.every((piece) => piece.type === "bishop")) return false;
+  const squareColors = others.map((piece) => {
+    const { file, rank } = squareToPosition(piece.square);
+    return (file + rank) % 2;
+  });
+  return squareColors.every((color) => color === squareColors[0]);
+}
+
+function hasLockedPawnDeadPosition(pieces) {
+  const pawns = pieces.filter((piece) => piece.type !== "king");
+  if (!pawns.length || !pawns.every((piece) => piece.type === "pawn")) return false;
+  const map = createPieceMapFromPieces(pieces);
+  if (pawns.some((pawn) => getPawnMoves(pawn, map).length > 0)) return false;
+  // Ignore the other king to overestimate reachability. If neither king can
+  // reach an enemy pawn even then, the pawn barrier can never be opened.
+  for (const color of ["white", "black"]) {
+    const king = findKing(color, pieces);
+    if (!king || isKingInCheck(color, pieces)) return false;
+    const enemyPawns = pawns.filter((pawn) => pawn.color !== color);
+    const attacked = new Set(enemyPawns.flatMap((pawn) => getAttackSquaresForPiece(pawn, pieces)));
+    const visited = new Set([king.square]);
+    const queue = [king.square];
+    for (let index = 0; index < queue.length; index += 1) {
+      const { file, rank } = squareToPosition(queue[index]);
+      for (let dx = -1; dx <= 1; dx += 1) {
+        for (let dy = -1; dy <= 1; dy += 1) {
+          const square = positionToSquare(file + dx, rank + dy);
+          if (!square || visited.has(square) || attacked.has(square)) continue;
+          const occupant = map.get(square);
+          if (occupant?.type === "pawn") {
+            if (occupant.color !== color) return false;
+            continue;
+          }
+          visited.add(square);
+          queue.push(square);
+        }
+      }
+    }
+  }
+  return true;
+}
+
+function getDrawPositionKey(pieces = gameState.pieces, turn = gameState.currentTurn) {
+  const placement = pieces.map((piece) => `${piece.color}:${piece.type}:${piece.square}`).sort().join(",");
+  const rights = [];
+  for (const color of ["white", "black"]) {
+    const rank = color === "white" ? "1" : "8";
+    const king = pieces.find((piece) => piece.color === color && piece.type === "king" && piece.square === `e${rank}`);
+    if (!king || king.hasMoved) continue;
+    for (const file of ["a", "h"]) {
+      const rook = pieces.find((piece) => piece.color === color && piece.type === "rook" && piece.square === `${file}${rank}`);
+      if (rook && !rook.hasMoved) rights.push(`${color}:${file}`);
+    }
+  }
+  // Only a legal en passant capture changes the repetition identity.
+  const enPassant = getAllLegalMoves(turn, pieces).filter((move) => move.enPassant)
+    .map((move) => move.toSquare).sort().join(",");
+  return `${placement}|${turn}|${rights.join(",")}|${enPassant}`;
+}
+
+function recordDrawPosition() {
+  const key = getDrawPositionKey();
+  gameState.positionCounts.set(key, (gameState.positionCounts.get(key) || 0) + 1);
+  gameState.needsPositionRecord = false;
+}
+
+function getDrawReason(turnState = evaluateTurnState()) {
+  if (turnState.checkmate) return null;
+  if (turnState.stalemate) return "stalemate";
+  if (hasInsufficientMaterial(gameState.pieces)) return "material";
+  if (hasLockedPawnDeadPosition(gameState.pieces)) return "deadPosition";
+  const repetitions = gameState.positionCounts.get(getDrawPositionKey()) || 0;
+  if (repetitions >= 5) return "fivefold";
+  if (gameState.halfmoveClock >= 150) return "seventyFiveMoves";
+  if (repetitions >= 3) return "repetition";
+  if (gameState.halfmoveClock >= 100) return "fiftyMoves";
+  return null;
 }
 
 function evaluateComputerPosition(pieces) {
@@ -1048,6 +1166,7 @@ function* searchComputerPosition(pieces, color, depth, alpha, beta, ply = 1, exc
   const moves = getAllLegalMoves(color, pieces);
   const inCheck = isKingInCheck(color, pieces);
   if (moves.length === 0) return inCheck ? (color === "black" ? -100000 + ply : 100000 - ply) : 0;
+  if (hasInsufficientMaterial(pieces)) return 0;
   const maximizing = color === "black";
   let best = maximizing ? -Infinity : Infinity;
   let candidates = moves;
@@ -1135,12 +1254,17 @@ function performMove(fromSquare, toSquare, moveData = null) {
     return null;
   }
 
-  const capturedPiece = getPieceAtSquare(toSquare);
+  const capturedSquare = moveData?.enPassant || toSquare;
+  const capturedPiece = getPieceAtSquare(capturedSquare);
   if (capturedPiece && capturedPiece !== movingPiece) {
     gameState.capturedPieces[capturedPiece.color].push({ ...capturedPiece });
   }
 
-  gameState.pieces = gameState.pieces.filter((piece) => piece.square !== toSquare || piece === movingPiece);
+  gameState.halfmoveClock = movingPiece.type === "pawn" || capturedPiece ? 0 : gameState.halfmoveClock + 1;
+  for (const piece of gameState.pieces) piece.enPassantVulnerable = false;
+  movingPiece.enPassantVulnerable = movingPiece.type === "pawn"
+    && Math.abs(squareToPosition(fromSquare).rank - squareToPosition(toSquare).rank) === 2;
+  gameState.pieces = gameState.pieces.filter((piece) => piece.square !== capturedSquare || piece === movingPiece);
   movingPiece.square = toSquare;
   movingPiece.hasMoved = true;
 
@@ -1154,6 +1278,7 @@ function performMove(fromSquare, toSquare, moveData = null) {
   }
 
   gameState.currentTurn = gameState.currentTurn === "white" ? "black" : "white";
+  gameState.needsPositionRecord = true;
   clearSelection();
   return {
     movingPiece,
@@ -1303,6 +1428,7 @@ function endGameWithWinner(winnerColor, reason = "capture") {
   gameState.winner = winnerColor;
   gameState.isGameOver = true;
   gameState.isStalemate = false;
+  gameState.drawReason = null;
   gameState.isComputerThinking = false;
 
   if (gameState.aiTimerId) {
@@ -1323,26 +1449,45 @@ function endGameWithWinner(winnerColor, reason = "capture") {
   launchConfetti();
 }
 
-function endGameAsStalemate() {
+function endGameAsDraw(reason) {
   gameState.winner = null;
   gameState.isGameOver = true;
-  gameState.isStalemate = true;
+  gameState.isStalemate = reason === "stalemate";
+  gameState.drawReason = reason;
   gameState.isComputerThinking = false;
+  clearSelection();
 
   if (gameState.aiTimerId) {
     window.clearTimeout(gameState.aiTimerId);
     gameState.aiTimerId = null;
   }
 
-  statusElement.textContent = "Stalemate!";
-  victoryOverlayElement.classList.add("is-hidden");
+  statusElement.textContent = `Draw! ${drawMessages[reason]}`;
+  victoryTitleElement.textContent = "Draw!";
+  victoryMessageElement.textContent = drawMessages[reason];
+  victoryLeftPieceElement.innerHTML = "";
+  victoryRightPieceElement.innerHTML = "";
+  victoryLeftPieceElement.appendChild(createCelebrationPiece("white", "king"));
+  victoryRightPieceElement.appendChild(createCelebrationPiece("black", "king"));
+  victoryOverlayElement.classList.remove("is-hidden");
 }
 
 function updateThreatState(playSound = false) {
+  if (gameState.isGameOver || gameState.pendingPromotion) return gameState.checkState;
+  if (gameState.needsPositionRecord) recordDrawPosition();
   const nextState = evaluateTurnState(gameState.currentTurn, gameState.pieces);
   gameState.checkState = nextState;
 
   gameState.isStalemate = false;
+  if (nextState.checkmate) {
+    endGameWithWinner(gameState.currentTurn === "white" ? "black" : "white", "checkmate");
+    return nextState;
+  }
+  const drawReason = getDrawReason(nextState);
+  if (drawReason) {
+    endGameAsDraw(drawReason);
+    return nextState;
+  }
 
   if (playSound) {
     if (nextState.checkmate) {
@@ -1496,8 +1641,8 @@ function maybeRunComputerTurn() {
       toSquare: computerMove.toSquare,
       movingElement: getRenderedPieceElement(computerMove.fromSquare),
       fromRect: getRenderedPieceElement(computerMove.fromSquare)?.getBoundingClientRect(),
-      capturedElement: getRenderedPieceElement(computerMove.toSquare),
-      captureRect: getRenderedPieceElement(computerMove.toSquare)?.getBoundingClientRect(),
+      capturedElement: getRenderedPieceElement(computerMove.enPassant || computerMove.toSquare),
+      captureRect: getRenderedPieceElement(computerMove.enPassant || computerMove.toSquare)?.getBoundingClientRect(),
       rookToSquare: computerMove.castle?.rookTo || null,
       rookElement: computerMove.castle?.rookFrom ? getRenderedPieceElement(computerMove.castle.rookFrom) : null,
       rookRect: computerMove.castle?.rookFrom ? getRenderedPieceElement(computerMove.castle.rookFrom)?.getBoundingClientRect() : null,
@@ -1533,8 +1678,8 @@ function handleSquareClick(squareName) {
       toSquare: squareName,
       movingElement: getRenderedPieceElement(gameState.selectedPiece.square),
       fromRect: getRenderedPieceElement(gameState.selectedPiece.square)?.getBoundingClientRect(),
-      capturedElement: getRenderedPieceElement(squareName),
-      captureRect: getRenderedPieceElement(squareName)?.getBoundingClientRect(),
+      capturedElement: getRenderedPieceElement(validMove.enPassant || squareName),
+      captureRect: getRenderedPieceElement(validMove.enPassant || squareName)?.getBoundingClientRect(),
       rookToSquare: validMove.castle?.rookTo || null,
       rookElement: validMove.castle?.rookFrom ? getRenderedPieceElement(validMove.castle.rookFrom) : null,
       rookRect: validMove.castle?.rookFrom ? getRenderedPieceElement(validMove.castle.rookFrom)?.getBoundingClientRect() : null,
@@ -1580,6 +1725,10 @@ function handleSquareClick(squareName) {
 }
 
 function updateStatusText() {
+  if (gameState.isGameOver && gameState.drawReason) {
+    statusElement.textContent = `Draw! ${drawMessages[gameState.drawReason]}`;
+    return;
+  }
   if (gameState.isGameOver && gameState.winner) {
     const winnerName = gameState.winner[0].toUpperCase() + gameState.winner.slice(1);
     statusElement.textContent = `${winnerName} wins!`;
@@ -1612,7 +1761,9 @@ function updateHud() {
   turnPillElement.classList.toggle("black-turn", gameState.currentTurn === "black");
   boardFrameElement.classList.toggle("white-turn-glow", gameState.currentTurn === "white");
   boardFrameElement.classList.toggle("black-turn-glow", gameState.currentTurn === "black");
-  victoryOverlayElement.classList.toggle("is-hidden", !gameState.isGameOver || !gameState.winner);
+  drawButton.classList.toggle("is-hidden", gameState.mode !== "two");
+  drawButton.disabled = gameState.isGameOver || Boolean(gameState.pendingPromotion);
+  victoryOverlayElement.classList.toggle("is-hidden", !gameState.isGameOver);
   promotionOverlayElement.classList.toggle("is-hidden", !gameState.pendingPromotion);
 }
 
@@ -1886,6 +2037,13 @@ function attachSetupEvents() {
   }
 
   newGameButton.addEventListener("click", showStartScreen);
+  drawButton.addEventListener("click", () => {
+    if (gameState.mode !== "two" || gameState.isGameOver || gameState.pendingPromotion) return;
+    if (window.confirm("Do both players agree to end this game as a draw?")) {
+      endGameAsDraw("agreement");
+      renderBoard();
+    }
+  });
   guideToggleButton.addEventListener("click", () => {
     gameState.moveGuideEnabled = !gameState.moveGuideEnabled;
     renderBoard();

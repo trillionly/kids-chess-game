@@ -14,4 +14,22 @@ Moves within that allowance are weighted toward the best score. These settings
 give gradual strength changes, not measured Elo ratings. Actual search depth depends
 on the position and device. The engine uses the game's existing move rules.
 
-Run the AI regression checks with `node --test tests/ai.test.cjs`.
+Draws end the game automatically for stalemate, insufficient mating material,
+threefold repetition, and 50 moves per side without a pawn move or capture.
+The fivefold/75-move thresholds are also recognized, although the earlier automatic
+thresholds normally end the game first. Checkmate takes priority on the final move.
+Two-player games also support an agreed draw through the Draw button.
+
+Repetition identity includes the player to move, castling rights, and legally
+available en passant captures. Move history is finalized after promotion.
+Players must make legal moves, and checkmate now ends the game without capturing
+the king. Recognized dead positions include bare kings, a lone bishop or knight,
+bishops restricted to one square color, and permanently sealed pawn-only barriers.
+This is not an exhaustive solver for every unusual dead position involving blocked
+pieces. There is no chess clock, so time-expiration rules do not apply.
+
+FIDE normally requires a claim for threefold repetition and the 50-move rule;
+this child-friendly game applies them automatically.
+Reference: https://handbook.fide.com/chapter/e012023
+
+Run regression checks with `node --test tests/ai.test.cjs tests/draw.test.cjs`.
